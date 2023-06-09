@@ -14,22 +14,27 @@ class IndexController extends Controller
     {
         return view("index");
     }
-    //默认打开首页
+    //打开点餐页面
     public function order()
     {
         return view("order");
     }
-    //默认打开首页
+    //打开加单页面
+    public function order_again()
+    {
+        return view("order_again");
+    }
+    //打开采购页面
     public function purchase()
     {
         return view("purchase");
     }
-    //默认打开首页
+    //打开账单页面
     public function bill()
     {
         return view("bill");
     }
-    //默认打开首页
+    //打开我的页面
     public function personal()
     {
         return view("personal");
@@ -79,11 +84,36 @@ class IndexController extends Controller
         $data = ["item_info"=>$item_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
+    //获取账单所需信息
+    public function get_bill_equal(Request $request)
+    {
+        $bill_date = $request->get("bill_date");
+        date_default_timezone_set('Asia/Shanghai');
+        if ($bill_date == 'today') {
+            $date = "'".date('Y-m-d')."'";
+        }else {
+            $date= "'".date('Y-m-d', strtotime($bill_date.' day'))."'";
+        }
+
+        $bill_equal_info = DB::select("SELECT Bill_Equal_ID, Bill_Equal_DeskID, od.Desk_Name AS Bill_Equal_DeskName, Bill_Equal_Date, Bill_Equal_Sale,Bill_Equal_Value,
+                                                CASE
+                                                  WHEN Bill_Equal_Value = 0 THEN '未结单'
+                                                  WHEN Bill_Equal_Value = 2 THEN '已结单'
+                                                END AS Bill_Value
+                                                FROM order_bill_equal AS ob,order_desk AS od
+                                                WHERE ob.Bill_Equal_DeskID = od.Desk_ID
+                                                AND Bill_Equal_DeleteValue = 0
+                                                AND DATE(Bill_Equal_Date) = $date
+                                                ORDER BY CASE WHEN Bill_Equal_Value = 0 THEN 0 ELSE 2 END, Bill_Equal_Date DESC;");
+        $data = ["bill_equal_info"=>$bill_equal_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
     //提交点单
     public function add_order(Request $request)
     {
         $desk_id = $request->get("desk_id");
         $dish_count = $request->get("dish_count");
+        $dish_equal = $request->get("dish_equal");
         date_default_timezone_set('Asia/Shanghai');
         $date = "'".date('Y-m-d H:i:s')."'";
         try {
@@ -99,6 +129,8 @@ class IndexController extends Controller
                 DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_DeleteValue)
                     values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 0)");
             }
+            DB::insert("insert into order_bill_equal (Bill_Equal_DeskID, Bill_Equal_Date, Bill_Equal_Sale, Bill_Equal_Value, Bill_Equal_DeleteValue)
+                    values ($desk_id, $date, $dish_equal, 0, 0)");
             DB::commit();
             return ["status"=>"success","message"=>"下单成功"];
         }catch (Exception $exception){
@@ -197,6 +229,29 @@ class IndexController extends Controller
         try {
             DB::beginTransaction();
             DB::update("UPDATE order_item SET Item_DeleteValue = 1 WHERE Item_ID = $Item_ID");
+            DB::commit();
+            return ["status"=>"success","message"=>"删除成功"];
+        }catch (Exception $exception){
+            DB::rollBack();
+            return ["status"=>"fail","message"=>"删除失败，原因如下：".$exception->getMessage()];
+        }
+    }
+    //删除账单
+    public function delete_bill(Request $request)
+    {
+        $Bill_Equal_ID = $request->get("Bill_Equal_ID");
+        $Bill_ID_List = DB::select("SELECT ob.Bill_ID
+                                        FROM order_bill AS ob,order_bill_equal AS obe
+                                        WHERE ob.Bill_Date = obe.Bill_Equal_Date
+                                        AND ob.Bill_DeskID = obe.Bill_Equal_DeskID
+                                        AND obe.Bill_Equal_ID = $Bill_Equal_ID");
+        try {
+            DB::beginTransaction();
+            DB::update("UPDATE order_bill_equal SET Bill_Equal_DeleteValue = 1 WHERE Bill_Equal_ID = $Bill_Equal_ID");
+            for ($i = 0;$i < count($Bill_ID_List);$i++) {
+                $Bill_ID = $Bill_ID_List[$i]->Bill_ID;
+                DB::update("UPDATE order_bill SET Bill_DeleteValue = 1 WHERE Bill_ID = $Bill_ID");
+            }
             DB::commit();
             return ["status"=>"success","message"=>"删除成功"];
         }catch (Exception $exception){

@@ -321,6 +321,10 @@
             //获取桌号
             let desk_id = getQueryString('desk');
             _formData.append("desk_id", desk_id);
+
+            //获取账单总计
+            let dish_equal = 0;
+
             //获取点单信息
             const dishes = document.querySelectorAll('.dish_list');
             for (let i = 0; i < dishes.length; i++) {
@@ -333,16 +337,24 @@
                     _formData.append("dish_sale_" + Dish_Count, input.getAttribute('data-sale'));
                     _formData.append("dish_sale_equal_" + Dish_Count, input.getAttribute('data-sale') * input.value);
                     Dish_Count++;
+                    dish_equal += input.getAttribute('data-sale') * input.value;
                 }
             }
             _formData.append("dish_count", Dish_Count);
+            _formData.append("dish_equal", dish_equal);
             _formData.append("_token", "{{ csrf_token() }}");
             fetch("{{ URL::to('/add_order') }}", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);
                 if (_resJson.status == "success"){
-                    layer.msg("下单成功！页面将自动关闭！")
+                    layer.msg("下单成功！页面将自动关闭！", {
+                        zIndex:10000,
+                        time: 2000,
+                        end: function () {
+                            window.close();
+                        }
+                    })
                     // window.location.reload();
                     // let pid = _resJson[0].id;
                 }else {

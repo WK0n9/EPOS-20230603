@@ -18,6 +18,7 @@ Route::get('/home', function () {
 });
 Route::get('/', [\App\Http\Controllers\IndexController::class,"index"])->name("home");//主页，选择桌号
 Route::get('/order', [\App\Http\Controllers\IndexController::class,"order"])->name("order");//点餐
+Route::get('/order_again', [\App\Http\Controllers\IndexController::class,"order_again"])->name("order_again");//加单
 Route::get('/purchase', [\App\Http\Controllers\IndexController::class,"purchase"])->name("purchase");//点餐
 Route::get('/bill', [\App\Http\Controllers\IndexController::class,"bill"])->name("bill");//点餐
 Route::get('/personal', [\App\Http\Controllers\IndexController::class,"personal"])->name("personal");//点餐
@@ -27,6 +28,7 @@ Route::post('/get_order', [\App\Http\Controllers\IndexController::class,"get_ord
 Route::post('/get_cate', [\App\Http\Controllers\IndexController::class,"get_cate"]);//获取菜品分类信息
 Route::post('/get_dish', [\App\Http\Controllers\IndexController::class,"get_dish"]);//获取菜品所需信息
 Route::post('/get_item', [\App\Http\Controllers\IndexController::class,"get_item"]);//获取库存所需信息
+Route::post('/get_bill_equal', [\App\Http\Controllers\IndexController::class,"get_bill_equal"]);//获取账单所需信息
 
 Route::post('/add_order', [\App\Http\Controllers\IndexController::class,"add_order"]);//提交点单
 Route::post('/add_dish', [\App\Http\Controllers\IndexController::class,"add_dish"]);//添加菜品
@@ -37,3 +39,4 @@ Route::post('/edit_item', [\App\Http\Controllers\IndexController::class,"edit_it
 
 Route::post('/delete_dish', [\App\Http\Controllers\IndexController::class,"delete_dish"]);//删除菜品
 Route::post('/delete_item', [\App\Http\Controllers\IndexController::class,"delete_item"]);//删除货物
+Route::post('/delete_bill', [\App\Http\Controllers\IndexController::class,"delete_bill"]);//删除账单
