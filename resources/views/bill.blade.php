@@ -60,44 +60,22 @@
                     <h5 class="modal-title">结单</h5>
                 </div>
                 <div class="modal-body" style="">
-                    <div id="finish_div" style="font-size: 14px;height: calc(90vh - 260px);overflow-y: auto">
-                        <div class="row" style="padding-bottom: 15px">
-                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
-                            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">数量</div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">单价</div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">总价</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">西红柿炒鸡蛋</div>
-                            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">1</div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">10</div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">10</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">青椒炒肉</div>
-                            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">1</div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">18.5</div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">18.5</div>
-                        </div>
-                        <div class="row" style="padding-top: 15px">
-                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
-                            <div class="col-5"></div>
-                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">28.5</div>
-                        </div>
-                    </div>
+
+                    <div id="finish_div" style="font-size: 14px;height: calc(90vh - 260px);overflow-y: auto"></div>
+
                     <div style="height: 20px;width: 100%"></div>
                     <div class="row" style="height: 40px">
                         <div class="col-3" style="padding: 0 5px 0 5px">
-                            <button type="button" class="btn btn-info" >抹小数</button>
+                            <button type="button" class="btn btn-info" onclick="littleNumRemoved()">抹小数</button>
                         </div>
                         <div class="col-3" style="padding: 0 5px 0 5px">
-                            <button type="button" class="btn btn-info" >抹个位</button>
+                            <button type="button" class="btn btn-info" onclick="zeroRemoved()">抹个位</button>
                         </div>
                         <div class="col-3" style="padding: 0 5px 0 5px">
-                            <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="" placeholder="折扣%">
+                            <input type="number" class="form-control" id="giveDiscount" aria-describedby="" placeholder="折扣%">
                         </div>
                         <div class="col-3" style="padding: 0 5px 0 5px">
-                            <button type="button" class="btn btn-info" >打折扣</button>
+                            <button type="button" class="btn btn-info" onclick="giveDiscount()">打折扣</button>
                         </div>
                     </div>
                 </div>
@@ -130,6 +108,37 @@
             <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/personal') }}'">我的</div>
         </div>
     </div>
+
+    <script type="text/html" id="finish-template">
+        <div style="text-align: left;padding-left: 0;">桌号：{%= list[0].Desk_ID %}-{%= list[0].Desk_Name %}</div>
+        <div style="text-align: left;padding-left: 0;">时间：{%= list[0].Bill_Equal_Date %}</div>
+        <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
+        <div class="row" style="padding: 7px 0 10px 0">
+            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
+            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">数量</div>
+            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">单价</div>
+            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">总价</div>
+        </div>
+        {% for(let i=0 ; i<list.length; i++){ %}
+        <div class="row">
+            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishName %}</div>
+            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishNum %}</div>
+            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishSale %}</div>
+            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishSaleEqual %}</div>
+        </div>
+        {% } %}
+        <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
+        <div class="row" style="padding-top: 7px;">
+            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
+            <div class="col-5"></div>
+            <div class="col-3" id="plan-finish" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[0].Bill_Equal_Sale %}</div>
+        </div>
+        <div class="row">
+            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">实收金额</div>
+            <div class="col-5"></div>
+            <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list[0].Bill_Equal_ID %}">{%= list[0].Bill_Equal_Sale %}</div>
+        </div>
+    </script>
 
     <script>
         //存放日期信息
@@ -217,8 +226,11 @@
                                     window.location.reload();
                                 }, function(){
                                     // layer.msg('结单')
-                                    openFinish();
+                                    openFinish(row.Bill_Equal_ID);
                                 });
+                            },
+                            'click #bill_equal_print':function (e,value, row, index) {
+                                // console.log(row)
                             },
                             'click #bill_equal_delete':function (e,value, row, index) {
                                 layer.confirm('确认删除？', {
@@ -255,7 +267,10 @@
                             if (row.Bill_Equal_Value == 0){
                                 result += '<button id="bill_equal_edit" class="btn-sm btn btn-primary" style="margin:2px 10px 2px 0;">编辑</button>';
                             }
-                            result += '<button id="bill_equal_delete" class="btn-sm btn btn-primary" style="margin:2px 10px 2px 0;">删除</button>';
+                            if (row.Bill_Equal_Value == 2){
+                                result += '<button id="bill_equal_print" class="btn-sm btn btn-success" style="margin:2px 10px 2px 0;">打印</button>';
+                            }
+                            result += '<button id="bill_equal_delete" class="btn-sm btn btn-danger" style="margin:2px 10px 2px 0;">删除</button>';
                             return result;
                         }
                     }],}
@@ -283,9 +298,24 @@
         }
 
         //开启已点
-        function openFinish(){
+        function openFinish(Bill_Equal_ID){
             $("#finishModal").on('show.bs.modal',function () {
-
+                let _formData = new FormData;
+                _formData.append('_token', "{{ csrf_token() }}");
+                _formData.append('Bill_Equal_ID',Bill_Equal_ID);
+                fetch("/get_finish", {method: 'post', body: _formData}).then(function (_res) {
+                    return _res.json();
+                }).then(function (_resJson) {
+                    console.log(_resJson);
+                    if (_resJson.status == "success"){
+                        let gethtml = document.getElementById('finish-template').innerHTML;
+                        jetpl(gethtml).render({list:_resJson.data.finish_info}, function(html){
+                            $('#finish_div').html(html);
+                        });
+                    }else {
+                        layer.msg("出错了！错误原因：" + _resJson.message);
+                    }
+                })
                 $('#finishModal').off('show.bs.modal');
             })
             $("#finishModal").modal('show');  //手动开启
@@ -294,9 +324,64 @@
         //关闭已点
         function closeFinish(){
             $("#finishModal").on('hide.bs.modal',function () {
-                // $("#yd_div").empty();
+                $("#finish_div").empty();
             })
             $("#finishModal").modal('hide');  //手动关闭
+        }
+
+        //折扣计算
+        function littleNumRemoved() {
+            let num = document.getElementById('plan-finish').innerHTML;
+            let floored = Math.floor(num);
+            document.getElementById('real-finish').innerHTML = floored;
+            console.log(floored);
+        }
+        function zeroRemoved() {
+            let num = document.getElementById('plan-finish').innerHTML;
+            let lastDigit = num % 10;
+            let zeroesRemoved = num - lastDigit;
+            document.getElementById('real-finish').innerHTML = zeroesRemoved;
+            console.log(zeroesRemoved);
+        }
+        function giveDiscount() {
+            let num = document.getElementById('plan-finish').innerHTML;
+            let discount = document.getElementById('giveDiscount').value;
+            let floored = Math.floor(num * (discount/100));
+            document.getElementById('real-finish').innerHTML = floored;
+        }
+
+        //提交结单
+        function confirmFinish() {
+            let bill_id = document.getElementById('real-finish').getAttribute('data-id');
+            let real_sale = document.getElementById('real-finish').innerHTML;
+            let _formData = new FormData;
+            _formData.append('_token', "{{ csrf_token() }}");
+            _formData.append('Bill_Equal_ID',bill_id);
+            _formData.append('Bill_Real_Sale',real_sale);
+            fetch("/add_finish", {method: 'post', body: _formData}).then(function (_res) {
+                return _res.json();
+            }).then(function (_resJson) {
+                console.log(_resJson);
+                if (_resJson.status == "success"){
+                    layer.confirm('已结单！立即打印小票？', {
+                        btn: ['取消','打印'] //按钮
+                    }, function(){
+                        layer.msg("已取消！", {
+                            zIndex:10000,
+                            time: 2000,
+                            end: function () {
+                                window.location.reload();
+                            }
+                        })
+                    }, function(){
+                        layer.msg('跳转打印');
+                        //然后刷新页面
+                        // window.location.reload();
+                    });
+                }else {
+                    layer.msg("出错了！错误原因：" + _resJson.message);
+                }
+            })
         }
     </script>
 </body>

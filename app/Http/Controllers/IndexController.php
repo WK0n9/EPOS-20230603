@@ -124,6 +124,26 @@ class IndexController extends Controller
         $data = ["ori_order_info"=>$ori_order_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
+    //获取结单信息
+    public function get_finish(Request $request)
+    {
+        $bill_equal_id = $request->get("Bill_Equal_ID");
+
+        $finish_info = DB::select("SELECT ob.Bill_ID, ob.Bill_DishName, ob.Bill_DishNum, ob.Bill_DishSale, ob.Bill_DishSaleEqual,
+                                                   obe.Bill_Equal_ID, obe.Bill_Equal_Date, obe.Bill_Equal_Sale,
+                                                   ode.Desk_ID, ode.Desk_Name
+                                                FROM order_bill AS ob,order_bill_equal AS obe,order_desk AS ode,order_cate AS oc,order_dish AS od
+                                                WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
+                                                AND obe.Bill_Equal_Date = ob.Bill_Date
+                                                AND ob.Bill_DeskID = ode.Desk_ID
+                                                AND ob.Bill_DishID = od.Dish_ID
+                                                AND od.Dish_Cate = oc.Cate_ID
+                                                AND obe.Bill_Equal_ID = $bill_equal_id
+                                                ORDER BY oc.Cate_ID ASC;");
+        $data = ["finish_info"=>$finish_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+
     //提交点单
     public function add_order(Request $request)
     {
@@ -237,6 +257,31 @@ class IndexController extends Controller
             return ["status"=>"fail","message"=>"添加失败，原因如下：".$exception->getMessage()];
         }
     }
+    //提交结单
+    public function add_finish(Request $request)
+    {
+        $bill_equal_id = $request->get("Bill_Equal_ID");
+        $bill_sale_real = "'".$request->get("Bill_Real_Sale")."'";
+        $Bill_ID_List = DB::select("SELECT ob.Bill_ID
+                                        FROM order_bill AS ob,order_bill_equal AS obe
+                                        WHERE ob.Bill_Date = obe.Bill_Equal_Date
+                                        AND ob.Bill_DeskID = obe.Bill_Equal_DeskID
+                                        AND obe.Bill_Equal_ID = $bill_equal_id");
+        try {
+            DB::beginTransaction();
+            DB::update("update order_bill_equal set Bill_Equal_Sale_Real = $bill_sale_real, Bill_Equal_Value = 2 where Bill_Equal_ID = $bill_equal_id");
+            for ($i = 0;$i < count($Bill_ID_List);$i++) {
+                $Bill_ID = $Bill_ID_List[$i]->Bill_ID;
+                DB::update("UPDATE order_bill SET Bill_Value = 2 WHERE Bill_ID = $Bill_ID");
+            }
+            DB::commit();
+            return ["status"=>"success","message"=>"结单成功"];
+        }catch (Exception $exception){
+            DB::rollBack();
+            return ["status"=>"fail","message"=>"结单失败，原因如下：".$exception->getMessage()];
+        }
+    }
+
     //编辑菜品
     public function edit_dish(Request $request)
     {
@@ -321,5 +366,73 @@ class IndexController extends Controller
             DB::rollBack();
             return ["status"=>"fail","message"=>"删除失败，原因如下：".$exception->getMessage()];
         }
+    }
+
+    //查询应收实收
+    public function calc_income()
+    {
+        date_default_timezone_set('Asia/Shanghai');
+        $date_today = "'".date('Y-m-d')."'";
+        $date_last_day= "'".date('Y-m-d', strtotime('-1 day'))."'";
+        $today_income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
+                                        FROM order_bill_equal
+                                        WHERE Bill_Equal_Value = 2
+                                        AND Bill_Equal_DeleteValue <> 1
+                                        AND DATE(Bill_Equal_Date) = $date_today");
+        $last_day_income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
+                                        FROM order_bill_equal
+                                        WHERE Bill_Equal_Value = 2
+                                        AND Bill_Equal_DeleteValue <> 1
+                                        AND DATE(Bill_Equal_Date) = $date_last_day");
+        $all_income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
+                                        FROM order_bill_equal
+                                        WHERE Bill_Equal_Value = 2
+                                        AND Bill_Equal_DeleteValue <> 1");
+        $data = ["today_income_info"=>$today_income_info,"last_day_income_info"=>$last_day_income_info,"all_income_info"=>$all_income_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+    //查询菜品成本
+    public function calc_cost()
+    {
+        date_default_timezone_set('Asia/Shanghai');
+        $date_today = "'".date('Y-m-d')."'";
+        $date_last_day= "'".date('Y-m-d', strtotime('-1 day'))."'";
+        $today_cost_info = DB::select("SELECT IFNULL(SUM(All_Dish_Cost),0) AS 'Total_Dish_Cost'
+                                                FROM (
+                                                    SELECT ob.Bill_DishID, ob.Bill_DishNum, od.Dish_Cost, ob.Bill_DishNum * od.Dish_Cost AS 'All_Dish_Cost'
+                                                    FROM order_bill AS ob, order_dish AS od
+                                                    WHERE ob.Bill_DishID = od.Dish_ID
+                                                    AND ob.Bill_Value = 2
+                                                    AND ob.Bill_DeleteValue <> 1
+                                                    AND DATE(ob.Bill_Date) = $date_today
+                                                ) AS subquery");
+        $last_day_cost_info = DB::select("SELECT IFNULL(SUM(All_Dish_Cost),0) AS 'Total_Dish_Cost'
+                                                FROM (
+                                                    SELECT ob.Bill_DishID, ob.Bill_DishNum, od.Dish_Cost, ob.Bill_DishNum * od.Dish_Cost AS 'All_Dish_Cost'
+                                                    FROM order_bill AS ob, order_dish AS od
+                                                    WHERE ob.Bill_DishID = od.Dish_ID
+                                                    AND ob.Bill_Value = 2
+                                                    AND ob.Bill_DeleteValue <> 1
+                                                    AND DATE(ob.Bill_Date) = $date_last_day
+                                                ) AS subquery");
+        $all_cost_info = DB::select("SELECT IFNULL(SUM(All_Dish_Cost),0) AS 'Total_Dish_Cost'
+                                                FROM (
+                                                    SELECT ob.Bill_DishID, ob.Bill_DishNum, od.Dish_Cost, ob.Bill_DishNum * od.Dish_Cost AS 'All_Dish_Cost'
+                                                    FROM order_bill AS ob, order_dish AS od
+                                                    WHERE ob.Bill_DishID = od.Dish_ID
+                                                    AND ob.Bill_Value = 2
+                                                    AND ob.Bill_DeleteValue <> 1
+                                                ) AS subquery");
+        $data = ["today_cost_info"=>$today_cost_info,"last_day_cost_info"=>$last_day_cost_info,"all_cost_info"=>$all_cost_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+    //查询进货支出
+    public function calc_item()
+    {
+        $item_info = DB::select("SELECT IFNULL(SUM(Item_Cost),0) AS Item_Cost
+                                            FROM order_item
+                                            WHERE Item_DeleteValue <> 1");
+        $data = ["item_info"=>$item_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
 }

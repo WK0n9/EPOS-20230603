@@ -30,11 +30,13 @@ Route::post('/get_dish', [\App\Http\Controllers\IndexController::class,"get_dish
 Route::post('/get_item', [\App\Http\Controllers\IndexController::class,"get_item"]);//获取库存所需信息
 Route::post('/get_bill_equal', [\App\Http\Controllers\IndexController::class,"get_bill_equal"]);//获取账单所需信息
 Route::post('/get_ori_order', [\App\Http\Controllers\IndexController::class,"get_ori_order"]);//加单时获取已点信息
+Route::post('/get_finish', [\App\Http\Controllers\IndexController::class,"get_finish"]);//获取结单信息
 
 Route::post('/add_order', [\App\Http\Controllers\IndexController::class,"add_order"]);//提交点单
 Route::post('/add_new_order', [\App\Http\Controllers\IndexController::class,"add_new_order"]);//提交加单
 Route::post('/add_dish', [\App\Http\Controllers\IndexController::class,"add_dish"]);//添加菜品
 Route::post('/add_item', [\App\Http\Controllers\IndexController::class,"add_item"]);//添加菜品
+Route::post('/add_finish', [\App\Http\Controllers\IndexController::class,"add_finish"]);//提交结单
 
 Route::post('/edit_dish', [\App\Http\Controllers\IndexController::class,"edit_dish"]);//修改菜品
 Route::post('/edit_item', [\App\Http\Controllers\IndexController::class,"edit_item"]);//修改货物
@@ -42,3 +44,8 @@ Route::post('/edit_item', [\App\Http\Controllers\IndexController::class,"edit_it
 Route::post('/delete_dish', [\App\Http\Controllers\IndexController::class,"delete_dish"]);//删除菜品
 Route::post('/delete_item', [\App\Http\Controllers\IndexController::class,"delete_item"]);//删除货物
 Route::post('/delete_bill', [\App\Http\Controllers\IndexController::class,"delete_bill"]);//删除账单
+
+Route::post('/calc_income', [\App\Http\Controllers\IndexController::class,"calc_income"]);//查询应收实收
+Route::post('/calc_cost', [\App\Http\Controllers\IndexController::class,"calc_cost"]);//查询菜品成本
+Route::post('/calc_item', [\App\Http\Controllers\IndexController::class,"calc_item"]);//查询菜品成本
+
