@@ -120,7 +120,7 @@
                 <div id="all-item" class="col-4 row_line" style=""></div>
             </div>
             <div class="row">
-                <div class="col-8 row_line" style="">总计进货/收入差</div>
+                <div class="col-8 row_line" style="">总计支出/收入差</div>
                 <div id="all-real-profit" class="col-4 row_line" style=""></div>
             </div>
         </div>
