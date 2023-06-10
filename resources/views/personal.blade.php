@@ -125,10 +125,10 @@
             </div>
         </div>
         <div class="row" style="position: absolute;bottom: 0;height: 60px;width: 100%;z-index: 99">
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/') }}'">点餐</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/purchase') }}'">采购</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/bill') }}'">账单</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/personal') }}'">我的</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/') }}'">点餐</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/purchase') }}'">采购</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/bill') }}'">账单</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/personal') }}'">我的</div>
         </div>
     </div>
 
@@ -136,7 +136,7 @@
         function calcIncome() {
             let _formData = new FormData;
             _formData.append('_token', "{{ csrf_token() }}");
-            fetch("/calc_income", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("/epos/calc_income", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);
@@ -156,7 +156,7 @@
         function calcCost() {
             let _formData = new FormData;
             _formData.append('_token', "{{ csrf_token() }}");
-            fetch("/calc_cost", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("/epos/calc_cost", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);
@@ -173,7 +173,7 @@
         function calcItem() {
             let _formData = new FormData;
             _formData.append('_token', "{{ csrf_token() }}");
-            fetch("/calc_item", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("/epos/calc_item", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);

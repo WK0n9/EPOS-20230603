@@ -70,10 +70,10 @@
 {{--            <div style="margin: 10px;padding: 10px;height: 50px;background-color: #e8e8e8;border-radius: 10px;line-height: 30px;text-align: center"></div>--}}
         </div>
         <div class="row" style="position: absolute;bottom: 0;height: 60px;width: 100%;z-index: 99">
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/') }}'">点餐</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/purchase') }}'">采购</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/bill') }}'">账单</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/personal') }}'">我的</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/') }}'">点餐</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/purchase') }}'">采购</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/bill') }}'">账单</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/personal') }}'">我的</div>
         </div>
     </div>
 
@@ -82,7 +82,7 @@
         function freshPage(){
             let _formData = new FormData;
             _formData.append("_token", "{{ csrf_token() }}");
-            fetch("{{ URL::to('/get_index') }}", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("{{ URL::to('/epos/get_index') }}", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson.data.desk_info);
@@ -102,7 +102,7 @@
                     div.style.borderRadius = '10px';
                     div.style.lineHeight = '30px';
                     div.style.textAlign = 'center';
-                    div.setAttribute("onclick","window.open('{{ URL::to('/order') }}" + "?desk=" + _resJson[i].Desk_ID + "')");
+                    div.setAttribute("onclick","window.open('{{ URL::to('/epos/order') }}" + "?desk=" + _resJson[i].Desk_ID + "')");
                     div.innerHTML = _resJson[i].Desk_Name;
                     dom.append(div);
                 }

@@ -202,7 +202,7 @@
             let desk_id = getQueryString('desk');
             let _formData = new FormData;
             _formData.append("_token", "{{ csrf_token() }}");
-            fetch("{{ URL::to('/get_order') }}", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("{{ URL::to('/epos/get_order') }}", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);
@@ -343,7 +343,7 @@
             _formData.append("dish_count", Dish_Count);
             _formData.append("dish_equal", dish_equal);
             _formData.append("_token", "{{ csrf_token() }}");
-            fetch("{{ URL::to('/add_order') }}", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("{{ URL::to('/epos/add_order') }}", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);

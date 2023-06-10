@@ -102,10 +102,10 @@
         </div>
 
         <div class="row" style="position: absolute;bottom: 0;height: 60px;width: 100%;z-index: 99">
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/') }}'">点餐</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/purchase') }}'">采购</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/bill') }}'">账单</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/personal') }}'">我的</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/') }}'">点餐</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/purchase') }}'">采购</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/bill') }}'">账单</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/personal') }}'">我的</div>
         </div>
     </div>
 
@@ -150,7 +150,7 @@
         function getBillEqualTable() {
             $('#bill_equal_table').bootstrapTable('destroy');
             let tableSettings = {
-                url:"{{ URL::to('/get_bill_equal') }}",
+                url:"{{ URL::to('/epos/get_bill_equal') }}",
                 pagination: "false",//开启分页
                 method: 'post',
                 pageSize: 10000,//每页大小
@@ -222,7 +222,7 @@
                                     btn: ['加单','结单'] //按钮
                                 }, function(){
                                     // layer.msg('加单');
-                                    window.open("{{ URL::to('/order_again') }}" + "?desk=" + row.Bill_Equal_DeskID + "&bill=" + row.Bill_Equal_ID);
+                                    window.open("{{ URL::to('/epos/order_again') }}" + "?desk=" + row.Bill_Equal_DeskID + "&bill=" + row.Bill_Equal_ID);
                                     window.location.reload();
                                 }, function(){
                                     // layer.msg('结单')
@@ -243,7 +243,7 @@
                                     _formData.append('_token', "{{ csrf_token() }}");
                                     _formData.append('Bill_Equal_ID',row.Bill_Equal_ID);
 
-                                    fetch("/delete_bill", {method: 'post', body: _formData}).then(function (_res) {
+                                    fetch("/epos/delete_bill", {method: 'post', body: _formData}).then(function (_res) {
                                         return _res.json();
                                     }).then(function (_resJson) {
                                         console.log(_resJson);
@@ -303,7 +303,7 @@
                 let _formData = new FormData;
                 _formData.append('_token', "{{ csrf_token() }}");
                 _formData.append('Bill_Equal_ID',Bill_Equal_ID);
-                fetch("/get_finish", {method: 'post', body: _formData}).then(function (_res) {
+                fetch("/epos/get_finish", {method: 'post', body: _formData}).then(function (_res) {
                     return _res.json();
                 }).then(function (_resJson) {
                     console.log(_resJson);
@@ -358,7 +358,7 @@
             _formData.append('_token', "{{ csrf_token() }}");
             _formData.append('Bill_Equal_ID',bill_id);
             _formData.append('Bill_Real_Sale',real_sale);
-            fetch("/add_finish", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("/epos/add_finish", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);

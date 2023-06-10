@@ -116,10 +116,10 @@
         </div>
 
         <div class="row" style="position: absolute;bottom: 0;height: 60px;width: 100%;z-index: 99">
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/') }}'">点餐</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/purchase') }}'">采购</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/bill') }}'">账单</div>
-            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/personal') }}'">我的</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/') }}'">点餐</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/purchase') }}'">采购</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/bill') }}'">账单</div>
+            <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/personal') }}'">我的</div>
         </div>
     </div>
 
@@ -250,7 +250,7 @@
         function getVegTable() {
             $('#dish_item_table').bootstrapTable('destroy');
             let tableSettings = {
-                url:"{{ URL::to('/get_dish') }}",
+                url:"{{ URL::to('/epos/get_dish') }}",
                 pagination: "false",//开启分页
                 method: 'post',
                 pageSize: 10000,//每页大小
@@ -346,7 +346,7 @@
                                 _formData.append('_token', "{{ csrf_token() }}");
                                 _formData.append('Dish_ID',row.Dish_ID);
 
-                                fetch("/delete_dish", {method: 'post', body: _formData}).then(function (_res) {
+                                fetch("/epos/delete_dish", {method: 'post', body: _formData}).then(function (_res) {
                                     return _res.json();
                                 }).then(function (_resJson) {
                                     console.log(_resJson);
@@ -381,7 +381,7 @@
         function getItemTable() {
             $('#dish_item_table').bootstrapTable('destroy');
             let tableSettings = {
-                url:"{{ URL::to('/get_item') }}",
+                url:"{{ URL::to('/epos/get_item') }}",
                 pagination: "false",//开启分页
                 method: 'post',
                 pageSize: 10000,//每页大小
@@ -462,7 +462,7 @@
                                     _formData.append('_token', "{{ csrf_token() }}");
                                     _formData.append('Item_ID',row.Item_ID);
 
-                                    fetch("/delete_item", {method: 'post', body: _formData}).then(function (_res) {
+                                    fetch("/epos/delete_item", {method: 'post', body: _formData}).then(function (_res) {
                                         return _res.json();
                                     }).then(function (_resJson) {
                                         console.log(_resJson);
@@ -608,7 +608,7 @@
                 _formData.append('Dish_Cost',Dish_Cost);
                 _formData.append('Dish_Sale',Dish_Sale);
 
-                fetch("/add_dish", {method: 'post', body: _formData}).then(function (_res) {
+                fetch("/epos/add_dish", {method: 'post', body: _formData}).then(function (_res) {
                     return _res.json();
                 }).then(function (_resJson) {
                     console.log(_resJson);
@@ -638,7 +638,7 @@
                 _formData.append('Item_Cost',Item_Cost);
                 _formData.append('Item_Tips',Item_Tips);
 
-                fetch("/add_item", {method: 'post', body: _formData}).then(function (_res) {
+                fetch("/epos/add_item", {method: 'post', body: _formData}).then(function (_res) {
                     return _res.json();
                 }).then(function (_resJson) {
                     console.log(_resJson);
@@ -700,7 +700,7 @@
                 _formData.append('Dish_Sale',Edit_Dish_Sale);
             }
 
-            fetch("/edit_dish", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("/epos/edit_dish", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);
@@ -734,7 +734,7 @@
             }
             _formData.append('Item_Tips',Edit_Item_Tips);
 
-            fetch("/edit_item", {method: 'post', body: _formData}).then(function (_res) {
+            fetch("/epos/edit_item", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
                 console.log(_resJson);
@@ -762,7 +762,7 @@
             //先清空再写入，避免组件重复获得焦点时重复写入
             dishInfo.Dish_ID.length = 0;
             dishInfo.Dish_Name.length = 0;
-            getInfo('/get_dish');
+            getInfo('/epos/get_dish');
             function getInfo(URL){
                 fetch(URL, {method: "post", body: _formData}).then(_res => {
                     return _res.json();
@@ -801,7 +801,7 @@
             //先清空再写入，避免组件重复获得焦点时重复写入
             dishInfo.Cate_ID.length = 0;
             dishInfo.Cate_Name.length = 0;
-            getInfo('/get_cate');
+            getInfo('/epos/get_cate');
             function getInfo(URL){
                 fetch(URL, {method: "post", body: _formData}).then(_res => {
                     return _res.json();
