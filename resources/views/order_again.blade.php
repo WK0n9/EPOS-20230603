@@ -98,11 +98,12 @@
                 <h5 class="modal-title">已点</h5>
             </div>
             <div class="modal-body" style="height: calc(90vh - 200px);overflow-y: auto">
+                <div id="ori_yd_div"></div>
                 <div id="yd_div"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeYidian()">关闭</button>
-                <button type="button" class="btn btn-primary" id="ydButton" onclick="confirmDish()">加单</button>
+                <button type="button" class="btn btn-primary" id="ydButton" onclick="confirmNewDish()">加单</button>
             </div>
         </div>
     </div>
@@ -116,7 +117,7 @@
         <div id="Dish" class="col-10" style="width: 100%;height: 100%;overflow-y: auto;padding: 0 5px 180px 5px"></div>
     </div>
     <button type="button" class="btn btn-info btn-flow" style="bottom: 100px" onclick="openYidian()">已点</button>
-    <button type="button" class="btn btn-info btn-flow" style="bottom: 20px" onclick="confirmDish()">加单</button>
+    <button type="button" class="btn btn-info btn-flow" style="bottom: 20px" onclick="confirmNewDish()">加单</button>
 </div>
 
 {{--    菜品模板--}}
@@ -145,7 +146,17 @@
 </script>
 
 {{--    菜品预览模板--}}
+<script type="text/html" id="dish-ori-yd-template">
+    <div style="height: 30px;line-height: 30px;font-size: 17px;font-weight: bold">已点：</div>
+    {% for(let i=0 ; i<list.length; i++){ %}
+    <div class="row dish_yd_list" id="{%= 'dish_yd_' + list[i].Bill_DishID %}" style="margin: 10px 0 10px 0;padding: 10px;height: 60px;background-color: #e8e8e8;border-radius: 10px">
+        <div class="col-6" style="padding: 0;line-height: 40px;font-size: 16px">{%= list[i].Bill_DishName %}</div>
+        <div class="col-6" style="padding: 0;line-height: 40px">数量：{%= list[i].Bill_DishNum %}</div>
+    </div>
+    {% } %}
+</script>
 <script type="text/html" id="dish-yd-template">
+    <div style="height: 30px;line-height: 30px;font-size: 17px;font-weight: bold">加单：</div>
     {% for(let i=0 ; i<list.length; i++){ %}
     <div class="row dish_yd_list" id="{%= 'dish_yd_' + list[i].Dish_ID %}" style="margin: 10px 0 10px 0;padding: 10px;height: 60px;background-color: #e8e8e8;border-radius: 10px">
         <div class="col-6" style="padding: 0;line-height: 40px;font-size: 16px">{%= list[i].Dish_Name %}</div>
@@ -251,6 +262,27 @@
     //开启已点
     function openYidian(){
         $("#ydModal").on('show.bs.modal',function () {
+            //已点部分
+            //获取单号
+            let bill_equal_id = getQueryString('bill');
+            let _formData = new FormData;
+            _formData.append("_token", "{{ csrf_token() }}");
+            _formData.append("bill_equal_id", bill_equal_id);
+            fetch("{{ URL::to('/get_ori_order') }}", {method: 'post', body: _formData}).then(function (_res) {
+                return _res.json();
+            }).then(function (_resJson) {
+                console.log(_resJson);
+                if (_resJson.status == "success"){
+                    let gethtml = document.getElementById('dish-ori-yd-template').innerHTML;
+                    jetpl(gethtml).render({list:_resJson.data.ori_order_info}, function(html){
+                        $('#ori_yd_div').html(html);
+                    });
+                }else {
+                    layer.msg("下单失败！");
+                }
+            })
+
+            //加单部分
             let dish_yd = [];
             // 获取所有菜品的样式
             const dishes = document.querySelectorAll('.dish_list');
@@ -288,12 +320,14 @@
     }
 
     //提交订单
-    function confirmDish() {
+    function confirmNewDish() {
         let Dish_Count = 0;
         let _formData = new FormData;
-        //获取桌号
+        //获取桌号和单号
         let desk_id = getQueryString('desk');
+        let bill_equal_id = getQueryString('bill');
         _formData.append("desk_id", desk_id);
+        _formData.append("bill_equal_id", bill_equal_id);
 
         //获取账单总计
         let dish_equal = 0;
@@ -316,12 +350,12 @@
         _formData.append("dish_count", Dish_Count);
         _formData.append("dish_equal", dish_equal);
         _formData.append("_token", "{{ csrf_token() }}");
-        fetch("{{ URL::to('/add_order') }}", {method: 'post', body: _formData}).then(function (_res) {
+        fetch("{{ URL::to('/add_new_order') }}", {method: 'post', body: _formData}).then(function (_res) {
             return _res.json();
         }).then(function (_resJson) {
             console.log(_resJson);
             if (_resJson.status == "success"){
-                layer.msg("下单成功！页面将自动关闭！", {
+                layer.msg("加单成功！页面将自动关闭！", {
                     zIndex:10000,
                     time: 2000,
                     end: function () {
@@ -331,7 +365,7 @@
                 // window.location.reload();
                 // let pid = _resJson[0].id;
             }else {
-                layer.msg("下单失败！");
+                layer.msg("加单失败！");
             }
         })
     }

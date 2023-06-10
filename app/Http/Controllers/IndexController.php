@@ -108,6 +108,22 @@ class IndexController extends Controller
         $data = ["bill_equal_info"=>$bill_equal_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
+    //加单时获取已点信息
+    public function get_ori_order(Request $request)
+    {
+        $bill_equal_id = $request->get("bill_equal_id");
+
+        $ori_order_info = DB::select("SELECT ob.Bill_DishID, ob.Bill_DishName, ob.Bill_DishNum
+                                FROM order_bill AS ob,order_bill_equal AS obe,order_cate AS oc,order_dish AS od
+                                WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
+                                AND obe.Bill_Equal_Date = ob.Bill_Date
+                                AND ob.Bill_DishID = od.Dish_ID
+                                AND od.Dish_Cate = oc.Cate_ID
+                                AND obe.Bill_Equal_ID = $bill_equal_id
+                                ORDER BY oc.Cate_ID ASC;");
+        $data = ["ori_order_info"=>$ori_order_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
     //提交点单
     public function add_order(Request $request)
     {
@@ -126,8 +142,8 @@ class IndexController extends Controller
                 $dish_sale = "'".$request->get("dish_sale_".$i)."'";
                 $dish_sale_equal = "'".$request->get("dish_sale_equal_".$i)."'";
 
-                DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_DeleteValue)
-                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 0)");
+                DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_Value, Bill_DeleteValue)
+                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 0, 0)");
             }
             DB::insert("insert into order_bill_equal (Bill_Equal_DeskID, Bill_Equal_Date, Bill_Equal_Sale, Bill_Equal_Value, Bill_Equal_DeleteValue)
                     values ($desk_id, $date, $dish_equal, 0, 0)");
@@ -135,7 +151,54 @@ class IndexController extends Controller
             return ["status"=>"success","message"=>"下单成功"];
         }catch (Exception $exception){
             DB::rollBack();
-            return ["status"=>"fail","message"=>"修改失败，原因如下：".$exception->getMessage()];
+            return ["status"=>"fail","message"=>"下单失败，原因如下：".$exception->getMessage()];
+        }
+    }
+    //提交加单
+    public function add_new_order(Request $request)
+    {
+        $desk_id = $request->get("desk_id");
+        $bill_equal_id = $request->get("bill_equal_id");
+        $dish_count = $request->get("dish_count");
+        $dish_equal = $request->get("dish_equal");
+        $order_info = DB::select("SELECT ob.Bill_DishID,ob.Bill_ID,ob.Bill_Date
+                                            FROM order_bill AS ob,order_bill_equal AS obe
+                                            WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
+                                            AND obe.Bill_Equal_Date = ob.Bill_Date
+                                            AND obe.Bill_Equal_ID = $bill_equal_id");
+        try {
+            DB::beginTransaction();
+            //
+            for ($i = 0;$i < $dish_count;$i++){
+                $dish_id = $request->get("dish_id_".$i);
+                $dish_name = "'".$request->get("dish_name_".$i)."'";
+                $dish_num = "'".$request->get("dish_num_".$i)."'";
+                $dish_sale = "'".$request->get("dish_sale_".$i)."'";
+                $dish_sale_equal = "'".$request->get("dish_sale_equal_".$i)."'";
+                $tip = 0;
+                for ($j = 0;$j < count($order_info);$j++) {
+                    $bill_dish_id = $order_info[$j]->Bill_DishID;
+                    $bill_id = $order_info[$j]->Bill_ID;
+                    if ($dish_id == $bill_dish_id) {
+                        $tip = 1;
+                        DB::update("UPDATE order_bill SET Bill_DishNum = Bill_DishNum + $dish_num, Bill_DishSaleEqual = Bill_DishSaleEqual + $dish_sale_equal WHERE Bill_ID = $bill_id");
+                        break;
+                    }
+                }
+                if ($tip != 0) {
+                    continue;
+                }
+                $date_ori = $order_info[0]->Bill_Date;
+                $date = "'".$date_ori."'";
+                DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_Value, Bill_DeleteValue)
+                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 0, 0)");
+            }
+            DB::update("update order_bill_equal set Bill_Equal_Sale = Bill_Equal_Sale + $dish_equal where Bill_Equal_ID = $bill_equal_id");
+            DB::commit();
+            return ["status"=>"success","message"=>"加单成功"];
+        }catch (Exception $exception){
+            DB::rollBack();
+            return ["status"=>"fail","message"=>"加单失败，原因如下：".$exception->getMessage()];
         }
     }
     //添加菜品

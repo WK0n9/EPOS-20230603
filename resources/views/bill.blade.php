@@ -52,6 +52,63 @@
 
 </head>
 <body>
+    {{--    结单界面--}}
+    <div class="modal fade" tabindex="-1" id="finishModal">
+        <div class="modal-dialog" style="width: 97%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">结单</h5>
+                </div>
+                <div class="modal-body" style="">
+                    <div id="finish_div" style="font-size: 14px;height: calc(90vh - 260px);overflow-y: auto">
+                        <div class="row" style="padding-bottom: 15px">
+                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
+                            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">数量</div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">单价</div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">总价</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">西红柿炒鸡蛋</div>
+                            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">1</div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">10</div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">10</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">青椒炒肉</div>
+                            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">1</div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">18.5</div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">18.5</div>
+                        </div>
+                        <div class="row" style="padding-top: 15px">
+                            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
+                            <div class="col-5"></div>
+                            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">28.5</div>
+                        </div>
+                    </div>
+                    <div style="height: 20px;width: 100%"></div>
+                    <div class="row" style="height: 40px">
+                        <div class="col-3" style="padding: 0 5px 0 5px">
+                            <button type="button" class="btn btn-info" >抹小数</button>
+                        </div>
+                        <div class="col-3" style="padding: 0 5px 0 5px">
+                            <button type="button" class="btn btn-info" >抹个位</button>
+                        </div>
+                        <div class="col-3" style="padding: 0 5px 0 5px">
+                            <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="" placeholder="折扣%">
+                        </div>
+                        <div class="col-3" style="padding: 0 5px 0 5px">
+                            <button type="button" class="btn btn-info" >打折扣</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeFinish()">关闭</button>
+                    <button type="button" class="btn btn-primary" id="ydButton" onclick="confirmFinish()">结单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div>
         <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">账单</div>
         <div style="height: 20px;width: 100%"></div>
@@ -159,7 +216,8 @@
                                     window.open("{{ URL::to('/order_again') }}" + "?desk=" + row.Bill_Equal_DeskID + "&bill=" + row.Bill_Equal_ID);
                                     window.location.reload();
                                 }, function(){
-                                    layer.msg('结单')
+                                    // layer.msg('结单')
+                                    openFinish();
                                 });
                             },
                             'click #bill_equal_delete':function (e,value, row, index) {
@@ -209,6 +267,7 @@
         }
         getBillEqualTable()
 
+        //查看前一天
         function openLastDay() {
             if (dateInfo.Date == 'today'){
                 dateInfo.Date = '-1';
@@ -217,9 +276,27 @@
             }
             getBillEqualTable()
         }
+        //查看当天
         function openToday() {
             dateInfo.Date = 'today';
             getBillEqualTable()
+        }
+
+        //开启已点
+        function openFinish(){
+            $("#finishModal").on('show.bs.modal',function () {
+
+                $('#finishModal').off('show.bs.modal');
+            })
+            $("#finishModal").modal('show');  //手动开启
+        }
+
+        //关闭已点
+        function closeFinish(){
+            $("#finishModal").on('hide.bs.modal',function () {
+                // $("#yd_div").empty();
+            })
+            $("#finishModal").modal('hide');  //手动关闭
         }
     </script>
 </body>

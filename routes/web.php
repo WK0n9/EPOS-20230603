@@ -29,8 +29,10 @@ Route::post('/get_cate', [\App\Http\Controllers\IndexController::class,"get_cate
 Route::post('/get_dish', [\App\Http\Controllers\IndexController::class,"get_dish"]);//获取菜品所需信息
 Route::post('/get_item', [\App\Http\Controllers\IndexController::class,"get_item"]);//获取库存所需信息
 Route::post('/get_bill_equal', [\App\Http\Controllers\IndexController::class,"get_bill_equal"]);//获取账单所需信息
+Route::post('/get_ori_order', [\App\Http\Controllers\IndexController::class,"get_ori_order"]);//加单时获取已点信息
 
 Route::post('/add_order', [\App\Http\Controllers\IndexController::class,"add_order"]);//提交点单
+Route::post('/add_new_order', [\App\Http\Controllers\IndexController::class,"add_new_order"]);//提交加单
 Route::post('/add_dish', [\App\Http\Controllers\IndexController::class,"add_dish"]);//添加菜品
 Route::post('/add_item', [\App\Http\Controllers\IndexController::class,"add_item"]);//添加菜品
 
