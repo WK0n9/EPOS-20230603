@@ -57,7 +57,7 @@
         <div class="modal-dialog" style="width: 97%">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">结单</h5>
+                    <h5 class="modal-title">详情</h5>
                 </div>
                 <div class="modal-body" style="">
 
@@ -65,30 +65,35 @@
 
                     <div style="height: 20px;width: 100%"></div>
                     <div class="row" style="height: 40px">
-                        <div class="col-3" style="padding: 0 5px 0 5px">
-                            <button type="button" class="btn btn-info" onclick="littleNumRemoved()">抹小数</button>
+{{--                        <div class="col-3" style="padding: 0 5px 0 5px">--}}
+{{--                            <button type="button" class="btn btn-info" onclick="littleNumRemoved()">抹小数</button>--}}
+{{--                        </div>--}}
+                        <div class="col-3" style="padding: 0 5px 0 5px;text-align: center">
+                            <button type="button" class="btn btn-info" onclick="zeroRemoved()">抹零</button>
                         </div>
-                        <div class="col-3" style="padding: 0 5px 0 5px">
-                            <button type="button" class="btn btn-info" onclick="zeroRemoved()">抹个位</button>
+                        <div class="col-3" style="padding: 0 5px 0 5px;text-align: center">
+                            <input type="number" class="form-control" id="giveDiscount" aria-describedby="" placeholder="折扣">
                         </div>
-                        <div class="col-3" style="padding: 0 5px 0 5px">
-                            <input type="number" class="form-control" id="giveDiscount" aria-describedby="" placeholder="折扣%">
+                        <div class="col-3" style="padding: 0 5px 0 5px;text-align: center">
+                            <button type="button" class="btn btn-info" onclick="giveDiscount()">打折</button>
                         </div>
-                        <div class="col-3" style="padding: 0 5px 0 5px">
-                            <button type="button" class="btn btn-info" onclick="giveDiscount()">打折扣</button>
+                        <div class="col-3" style="padding: 0 5px 0 5px;text-align: center">
+                            <button type="button" class="btn btn-info" onclick="giveCoupon()">优惠</button>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeFinish()">关闭</button>
-                    <button type="button" class="btn btn-primary" id="ydButton" onclick="confirmFinish()">结单</button>
+                    <button type="button" class="btn btn-success">打印</button>
+                    <button type="button" class="btn btn-info" onclick="addDish()">加单</button>
+                    <button type="button" class="btn btn-danger" id="ydButton" onclick="confirmFinish()">结单</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">账单</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-账单</div>
         <div style="height: 20px;width: 100%"></div>
         <div style="height: 40px;text-align: left">
             <button id="button_last_day" type="button" class="btn btn-info" style="margin-left: 20px" onclick="openLastDay()">前一天</button>
@@ -110,7 +115,7 @@
     </div>
 
     <script type="text/html" id="finish-template">
-        <div style="text-align: left;padding-left: 0;">桌号：{%= list[0].Desk_ID %}-{%= list[0].Desk_Name %}</div>
+        <div id="get_id" style="text-align: left;padding-left: 0;" data-id="{%= list[0].Desk_ID %}" data-eid="{%= list[0].Bill_Equal_ID %}">桌号：{%= list[0].Desk_Name %}</div>
         <div style="text-align: left;padding-left: 0;">时间：{%= list[0].Bill_Equal_Date %}</div>
         <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
         <div class="row" style="padding: 7px 0 10px 0">
@@ -141,6 +146,18 @@
     </script>
 
     <script>
+        //有这样一中情形：假如存为书签的话，不能按照token获取用户数据，解决办法如下
+        let _token = localStorage.getItem("_token");
+        if(_token == null || _token == undefined || _token == "undefined")
+        {
+            window.location.href = "{{ URL::to('/epos/login') }}";
+        }
+        pwd = _token;
+        pid = localStorage.getItem("ddid");
+        cate = localStorage.getItem("cate");
+        console.log(pid);
+        console.log(pwd);
+
         //存放日期信息
         function DateInfo(){}
         DateInfo.prototype.Date = 'today';
@@ -175,6 +192,10 @@
                         "rows":_responseJson.data.bill_equal_info
                     }
                 },
+                // onClickRow:function(row, $element, field)
+                // {
+                //     console.log(row);
+                // },
                 columns: [
                     {
                         field: 'Bill_Equal_ID',
@@ -229,6 +250,10 @@
                                     openFinish(row.Bill_Equal_ID);
                                 });
                             },
+                            'click #bill_equal_detail':function (e,value, row, index) {
+                                // console.log(row)
+                                openDetail(row.Bill_Equal_ID,row.Bill_Equal_DeskID);
+                            },
                             'click #bill_equal_print':function (e,value, row, index) {
                                 // console.log(row)
                             },
@@ -264,10 +289,11 @@
                         },
                         formatter: function (value, row, index) {
                             let result = "";
-                            if (row.Bill_Equal_Value == 0){
-                                result += '<button id="bill_equal_edit" class="btn-sm btn btn-primary" style="margin:2px 10px 2px 0;">编辑</button>';
+                            if (row.Bill_Equal_Value != 0){
+                                // result += '<button id="bill_equal_edit" class="btn-sm btn btn-primary" style="margin:2px 10px 2px 0;">编辑</button>';
+                                result += '<button id="bill_equal_detail" class="btn-sm btn btn-info" style="margin:2px 10px 2px 0;">查看</button>';
                             }
-                            if (row.Bill_Equal_Value == 2){
+                            if (row.Bill_Equal_Value == 0){
                                 result += '<button id="bill_equal_print" class="btn-sm btn btn-success" style="margin:2px 10px 2px 0;">打印</button>';
                             }
                             result += '<button id="bill_equal_delete" class="btn-sm btn btn-danger" style="margin:2px 10px 2px 0;">删除</button>';
@@ -321,10 +347,35 @@
             $("#finishModal").modal('show');  //手动开启
         }
 
+        //开启详情
+        function openDetail(Bill_Equal_ID,Bill_Equal_DeskID){
+            $("#finishModal").on('show.bs.modal',function () {
+                let _formData = new FormData;
+                _formData.append('_token', "{{ csrf_token() }}");
+                _formData.append('Bill_Equal_ID',Bill_Equal_ID);
+                fetch("/epos/get_finish", {method: 'post', body: _formData}).then(function (_res) {
+                    return _res.json();
+                }).then(function (_resJson) {
+                    console.log(_resJson);
+                    if (_resJson.status == "success"){
+                        let gethtml = document.getElementById('finish-template').innerHTML;
+                        jetpl(gethtml).render({list:_resJson.data.finish_info}, function(html){
+                            $('#finish_div').html(html);
+                        });
+                    }else {
+                        layer.msg("出错了！错误原因：" + _resJson.message);
+                    }
+                })
+                $('#finishModal').off('show.bs.modal');
+            })
+            $("#finishModal").modal('show');  //手动开启
+        }
+
         //关闭已点
         function closeFinish(){
             $("#finishModal").on('hide.bs.modal',function () {
                 $("#finish_div").empty();
+                document.getElementById('giveDiscount').value = '';
             })
             $("#finishModal").modal('hide');  //手动关闭
         }
@@ -346,42 +397,79 @@
         function giveDiscount() {
             let num = document.getElementById('plan-finish').innerHTML;
             let discount = document.getElementById('giveDiscount').value;
-            let floored = Math.floor(num * (discount/100));
-            document.getElementById('real-finish').innerHTML = floored;
+            let dis = 10;
+            if (discount != '') {
+                dis = discount;
+            }
+            if (dis < 0 || dis >10) {
+                layer.msg("折扣范围不能超过0~10！", {
+                    zIndex:10000
+                })
+            }else {
+                let floored = Math.floor(num * (dis/10));
+                document.getElementById('real-finish').innerHTML = floored;
+            }
+        }
+        function giveCoupon() {
+            let num = document.getElementById('plan-finish').innerHTML;
+            let coupon = document.getElementById('giveDiscount').value;
+            if ((num - coupon) < 0 || (num - coupon) > num) {
+                layer.msg("优惠券面额为正数且不能超过订单金额！", {
+                    zIndex:10000
+                })
+            }else {
+                cou = num - coupon;
+                document.getElementById('real-finish').innerHTML = cou;
+            }
+        }
+
+        //加单
+        function addDish() {
+            let Eid = document.getElementById('get_id').getAttribute('data-eid');
+            let Did = document.getElementById('get_id').getAttribute('data-id');
+            window.open("{{ URL::to('/epos/order_again') }}" + "?desk=" + Did + "&bill=" + Eid);
+            window.location.reload();
         }
 
         //提交结单
         function confirmFinish() {
-            let bill_id = document.getElementById('real-finish').getAttribute('data-id');
-            let real_sale = document.getElementById('real-finish').innerHTML;
-            let _formData = new FormData;
-            _formData.append('_token', "{{ csrf_token() }}");
-            _formData.append('Bill_Equal_ID',bill_id);
-            _formData.append('Bill_Real_Sale',real_sale);
-            fetch("/epos/add_finish", {method: 'post', body: _formData}).then(function (_res) {
-                return _res.json();
-            }).then(function (_resJson) {
-                console.log(_resJson);
-                if (_resJson.status == "success"){
-                    layer.confirm('已结单！立即打印小票？', {
-                        btn: ['取消','打印'] //按钮
-                    }, function(){
-                        layer.msg("已取消！", {
-                            zIndex:10000,
-                            time: 2000,
-                            end: function () {
-                                window.location.reload();
-                            }
-                        })
-                    }, function(){
-                        layer.msg('跳转打印');
-                        //然后刷新页面
-                        // window.location.reload();
-                    });
-                }else {
-                    layer.msg("出错了！错误原因：" + _resJson.message);
-                }
-            })
+            layer.confirm('确认结单？', {
+                btn: ['取消','确认'] //按钮
+            }, function(){
+                layer.msg('已取消');
+            }, function(){
+                // layer.msg('确认')
+                let bill_id = document.getElementById('real-finish').getAttribute('data-id');
+                let real_sale = document.getElementById('real-finish').innerHTML;
+                let _formData = new FormData;
+                _formData.append('_token', "{{ csrf_token() }}");
+                _formData.append('Bill_Equal_ID',bill_id);
+                _formData.append('Bill_Real_Sale',real_sale);
+                fetch("/epos/add_finish", {method: 'post', body: _formData}).then(function (_res) {
+                    return _res.json();
+                }).then(function (_resJson) {
+                    console.log(_resJson);
+                    if (_resJson.status == "success"){
+                        layer.confirm('已结单！立即打印小票？', {
+                            btn: ['取消','打印'] //按钮
+                        }, function(){
+                            layer.msg("已取消！", {
+                                zIndex:10000,
+                                time: 2000,
+                                end: function () {
+                                    window.location.reload();
+                                }
+                            })
+                        }, function(){
+                            layer.msg('跳转打印');
+                            //然后刷新页面
+                            // window.location.reload();
+                        });
+                    }else {
+                        layer.msg("出错了！错误原因：" + _resJson.message);
+                    }
+                })
+            });
         }
     </script>
 </body>

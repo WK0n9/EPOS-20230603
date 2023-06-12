@@ -12,16 +12,20 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::prefix("/epos/")->group(function (){
+Route::get('/epos/login', [\App\Http\Controllers\EposController::class,"login"])->name("epos_login");//登录页面
+Route::post('/epos/login_token', [\App\Http\Controllers\EposController::class,"login_token"]);//登录
+
+Route::middleware(["CheckLogin"])->prefix("/epos/")->group(function (){
     Route::get('/home', function () {
         return view('epos_welcome');
     });
     Route::get('/', [\App\Http\Controllers\EposController::class,"index"])->name("epos_home");//主页，选择桌号
     Route::get('/order', [\App\Http\Controllers\EposController::class,"order"])->name("epos_order");//点餐
     Route::get('/order_again', [\App\Http\Controllers\EposController::class,"order_again"])->name("epos_order_again");//加单
-    Route::get('/purchase', [\App\Http\Controllers\EposController::class,"purchase"])->name("epos_purchase");//点餐
-    Route::get('/bill', [\App\Http\Controllers\EposController::class,"bill"])->name("epos_bill");//点餐
-    Route::get('/personal', [\App\Http\Controllers\EposController::class,"personal"])->name("epos_personal");//点餐
+    Route::get('/purchase', [\App\Http\Controllers\EposController::class,"purchase"])->name("epos_purchase");//采购
+    Route::get('/bill', [\App\Http\Controllers\EposController::class,"bill"])->name("epos_bill");//账单
+    Route::get('/bill_back', [\App\Http\Controllers\EposController::class,"bill_back"])->name("epos_bill_back");//账单_后厨
+    Route::get('/personal', [\App\Http\Controllers\EposController::class,"personal"])->name("epos_personal");//我的
 
     Route::post('/get_index', [\App\Http\Controllers\EposController::class,"get_index"]);//获取主页所需信息
     Route::post('/get_order', [\App\Http\Controllers\EposController::class,"get_order"]);//获取点餐所需信息

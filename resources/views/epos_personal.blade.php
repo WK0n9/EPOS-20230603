@@ -59,7 +59,7 @@
 </head>
 <body>
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">我的</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-我的</div>
         <div id="Desk_ID" style="height: calc(100vh - 120px);width: 100%;overflow-y: auto">
             <div class="row">
                 <div class="col-8 row_line" style="">今日总流水(应收)</div>
@@ -133,6 +133,18 @@
     </div>
 
     <script>
+        //有这样一中情形：假如存为书签的话，不能按照token获取用户数据，解决办法如下
+        let _token = localStorage.getItem("_token");
+        if(_token == null || _token == undefined || _token == "undefined")
+        {
+            window.location.href = "{{ URL::to('/epos/login') }}";
+        }
+        pwd = _token;
+        pid = localStorage.getItem("ddid");
+        cate = localStorage.getItem("cate");
+        console.log(pid);
+        console.log(pwd);
+
         function calcIncome() {
             let _formData = new FormData;
             _formData.append('_token', "{{ csrf_token() }}");

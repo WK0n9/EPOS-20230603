@@ -95,7 +95,7 @@
     </div>
 
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">采购</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-采购</div>
         <div style="height: 20px;width: 100%"></div>
         <div class="row" style="height: 40px">
             <div class="col-6" style="text-align: left">
@@ -238,6 +238,18 @@
     </script>
 
     <script>
+        //有这样一中情形：假如存为书签的话，不能按照token获取用户数据，解决办法如下
+        let _token = localStorage.getItem("_token");
+        if(_token == null || _token == undefined || _token == "undefined")
+        {
+            window.location.href = "{{ URL::to('/epos/login') }}";
+        }
+        pwd = _token;
+        pid = localStorage.getItem("ddid");
+        cate = localStorage.getItem("cate");
+        console.log(pid);
+        console.log(pwd);
+
         //存放下拉菜单信息
         function DishInfo(){}
         DishInfo.prototype.Dish_ID = [];

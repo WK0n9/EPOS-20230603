@@ -110,7 +110,7 @@
 </div>
 
 <div>
-    <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">加单</div>
+    <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-加单</div>
     <div id="Desk_ID" style="padding-left: 15px;height: 30px;width: 100%;line-height: 30px">桌号：</div>
     <div class="row" style="height: calc(100vh - 90px)">
         <div id="Cate" class="col-2" style="width: 100%;height: 100%;background-color: #e5e5e5;overflow-y: auto;padding: 0 5px 0 5px"></div>
@@ -124,23 +124,23 @@
 <script type="text/html" id="dish-template">
     {% for(let i=0 ; i<list.length; i++){ %}
     <div class="row dish_list" id="{%= 'dish_' + list[i].Dish_ID %}" style="margin: 10px 0 10px 0;padding: 10px;height: 70px;background-color: #e8e8e8;border-radius: 10px">
-        <div class="col-5 dish_head" style="padding: 0;line-height: 40px;font-size: 16px" data-id="{%= list[i].Dish_ID %}">{%= list[i].Dish_Name %}</div>
-        <div class="col-7" style="padding: 5px 0 5px 0">
+        <div class="col-7 dish_head" style="padding: 0;line-height: 40px;font-size: 16px" data-id="{%= list[i].Dish_ID %}">{%= list[i].Dish_Name %}</div>
+        <div class="col-5" style="padding: 5px 0 5px 0">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="mo" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">-</button>
-                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="mpf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>
+{{--                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="mpf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>--}}
                 </div>
                 <input type="text" class="{%= 'form-control fc_' + list[i].Dish_ID %}" value="0" data-sale="{%= list[i].Dish_Sale %}">
                 <div class="input-group-append">
-                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="ppf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>
+{{--                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="ppf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>--}}
                     <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="po" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">+</button>
                 </div>
             </div>
         </div>
         <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">价格：{%= list[i].Dish_Sale %}</div>
         {{--            <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">库存：{%= list[i].Dish_Stock %}</div>--}}
-        <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">已售：{%= list[i].Dish_Num %}</div>
+{{--        <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">已售：{%= list[i].Dish_Num %}</div>--}}
     </div>
     {% } %}
 </script>
@@ -166,6 +166,18 @@
 </script>
 
 <script>
+    //有这样一中情形：假如存为书签的话，不能按照token获取用户数据，解决办法如下
+    let _token = localStorage.getItem("_token");
+    if(_token == null || _token == undefined || _token == "undefined")
+    {
+        window.location.href = "{{ URL::to('/epos/login') }}";
+    }
+    pwd = _token;
+    pid = localStorage.getItem("ddid");
+    cate = localStorage.getItem("cate");
+    console.log(pid);
+    console.log(pwd);
+
     //解析get传值
     function getQueryString(name) {
         let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
@@ -190,7 +202,13 @@
             return _res.json();
         }).then(function (_resJson) {
             console.log(_resJson);
-            document.getElementById("Desk_ID").innerHTML += (desk_id + "-" + _resJson.data.desk_info[desk_id - 1].Desk_Name);
+            let desk_name = '';
+            for (let i = 0;i < _resJson.data.desk_info.length;i++) {
+                if (desk_id == _resJson.data.desk_info[i].Desk_ID) {
+                    desk_name = _resJson.data.desk_info[i].Desk_Name;
+                }
+            }
+            document.getElementById("Desk_ID").innerHTML += (desk_name);
             let gethtml = document.getElementById('dish-template').innerHTML;
             jetpl(gethtml).render({list:_resJson.data.dish_info}, function(html){
                 $('#Dish').html(html);
@@ -350,24 +368,28 @@
         _formData.append("dish_count", Dish_Count);
         _formData.append("dish_equal", dish_equal);
         _formData.append("_token", "{{ csrf_token() }}");
-        fetch("{{ URL::to('/epos/add_new_order') }}", {method: 'post', body: _formData}).then(function (_res) {
-            return _res.json();
-        }).then(function (_resJson) {
-            console.log(_resJson);
-            if (_resJson.status == "success"){
-                layer.msg("加单成功！页面将自动关闭！", {
-                    zIndex:10000,
-                    time: 2000,
-                    end: function () {
-                        window.close();
-                    }
-                })
-                // window.location.reload();
-                // let pid = _resJson[0].id;
-            }else {
-                layer.msg("加单失败！");
-            }
-        })
+        if (Dish_Count == 0) {
+            layer.msg('不可提交空订单！')
+        }else {
+            fetch("{{ URL::to('/epos/add_new_order') }}", {method: 'post', body: _formData}).then(function (_res) {
+                return _res.json();
+            }).then(function (_resJson) {
+                console.log(_resJson);
+                if (_resJson.status == "success"){
+                    layer.msg("加单成功！页面将自动关闭！", {
+                        zIndex:10000,
+                        time: 2000,
+                        end: function () {
+                            window.close();
+                        }
+                    })
+                    // window.location.reload();
+                    // let pid = _resJson[0].id;
+                }else {
+                    layer.msg("加单失败！");
+                }
+            })
+        }
     }
 </script>
 </body>

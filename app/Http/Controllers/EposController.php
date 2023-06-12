@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\DB;
 
 class EposController extends Controller
 {
+    //打开登录页面
+    public function login()
+    {
+        return view("epos_login");
+    }
     //默认打开首页
     public function index()
     {
@@ -31,6 +36,11 @@ class EposController extends Controller
     public function bill()
     {
         return view("epos_bill");
+    }
+    //打开账单页面
+    public function bill_back()
+    {
+        return view("epos_bill_back");
     }
     //打开我的页面
     public function personal()
@@ -95,14 +105,14 @@ class EposController extends Controller
 
         $bill_equal_info = DB::select("SELECT Bill_Equal_ID, Bill_Equal_DeskID, od.Desk_Name AS Bill_Equal_DeskName, Bill_Equal_Date, Bill_Equal_Sale,Bill_Equal_Value,
                                                 CASE
-                                                  WHEN Bill_Equal_Value = 0 THEN '未结单'
-                                                  WHEN Bill_Equal_Value = 2 THEN '已结单'
+                                                  WHEN Bill_Equal_Value <> 0 THEN '未结单'
+                                                  WHEN Bill_Equal_Value = 0 THEN '已结单'
                                                 END AS Bill_Value
                                                 FROM order_bill_equal AS ob,order_desk AS od
                                                 WHERE ob.Bill_Equal_DeskID = od.Desk_ID
                                                 AND Bill_Equal_DeleteValue = 0
                                                 AND DATE(Bill_Equal_Date) = $date
-                                                ORDER BY CASE WHEN Bill_Equal_Value = 0 THEN 0 ELSE 2 END, Bill_Equal_Date DESC;");
+                                                ORDER BY CASE WHEN Bill_Equal_Value = 0 THEN 0 ELSE 1 END, Bill_Equal_Date DESC;");
         $data = ["bill_equal_info"=>$bill_equal_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
@@ -118,6 +128,10 @@ class EposController extends Controller
                                 AND ob.Bill_DishID = od.Dish_ID
                                 AND od.Dish_Cate = oc.Cate_ID
                                 AND obe.Bill_Equal_ID = $bill_equal_id
+                                AND ob.Bill_DeleteValue = 0
+                                AND obe.Bill_Equal_DeleteValue = 0
+                                AND oc.Cate_DeleteValue = 0
+                                AND od.Dish_DeleteValue = 0
                                 ORDER BY oc.Cate_ID ASC;");
         $data = ["ori_order_info"=>$ori_order_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
@@ -137,6 +151,11 @@ class EposController extends Controller
                                                 AND ob.Bill_DishID = od.Dish_ID
                                                 AND od.Dish_Cate = oc.Cate_ID
                                                 AND obe.Bill_Equal_ID = $bill_equal_id
+                                                AND ob.Bill_DeleteValue = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0
+                                                AND oc.Cate_DeleteValue = 0
+                                                AND od.Dish_DeleteValue = 0
+                                                AND ode.Desk_DeleteValue = 0
                                                 ORDER BY oc.Cate_ID ASC;");
         $data = ["finish_info"=>$finish_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
@@ -161,10 +180,10 @@ class EposController extends Controller
                 $dish_sale_equal = "'".$request->get("dish_sale_equal_".$i)."'";
 
                 DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_Value, Bill_DeleteValue)
-                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 0, 0)");
+                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 1, 0)");
             }
             DB::insert("insert into order_bill_equal (Bill_Equal_DeskID, Bill_Equal_Date, Bill_Equal_Sale, Bill_Equal_Value, Bill_Equal_DeleteValue)
-                    values ($desk_id, $date, $dish_equal, 0, 0)");
+                    values ($desk_id, $date, $dish_equal, 1, 0)");
             DB::commit();
             return ["status"=>"success","message"=>"下单成功"];
         }catch (Exception $exception){
@@ -183,7 +202,9 @@ class EposController extends Controller
                                             FROM order_bill AS ob,order_bill_equal AS obe
                                             WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
                                             AND obe.Bill_Equal_Date = ob.Bill_Date
-                                            AND obe.Bill_Equal_ID = $bill_equal_id");
+                                            AND obe.Bill_Equal_ID = $bill_equal_id
+                                            AND ob.Bill_DeleteValue = 0
+                                            AND obe.Bill_Equal_DeleteValue = 0");
         try {
             DB::beginTransaction();
             //
@@ -199,7 +220,7 @@ class EposController extends Controller
                     $bill_id = $order_info[$j]->Bill_ID;
                     if ($dish_id == $bill_dish_id) {
                         $tip = 1;
-                        DB::update("UPDATE order_bill SET Bill_DishNum = Bill_DishNum + $dish_num, Bill_DishSaleEqual = Bill_DishSaleEqual + $dish_sale_equal WHERE Bill_ID = $bill_id");
+                        DB::update("UPDATE order_bill SET Bill_DishNum = Bill_DishNum + $dish_num, Bill_DishSaleEqual = Bill_DishSaleEqual + $dish_sale_equal, Bill_Value = 2 WHERE Bill_ID = $bill_id");
                         break;
                     }
                 }
@@ -209,7 +230,7 @@ class EposController extends Controller
                 $date_ori = $order_info[0]->Bill_Date;
                 $date = "'".$date_ori."'";
                 DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_Value, Bill_DeleteValue)
-                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 0, 0)");
+                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 2, 0)");
             }
             DB::update("update order_bill_equal set Bill_Equal_Sale = Bill_Equal_Sale + $dish_equal where Bill_Equal_ID = $bill_equal_id");
             DB::commit();
@@ -264,13 +285,15 @@ class EposController extends Controller
                                         FROM order_bill AS ob,order_bill_equal AS obe
                                         WHERE ob.Bill_Date = obe.Bill_Equal_Date
                                         AND ob.Bill_DeskID = obe.Bill_Equal_DeskID
-                                        AND obe.Bill_Equal_ID = $bill_equal_id");
+                                        AND obe.Bill_Equal_ID = $bill_equal_id
+                                        AND ob.Bill_DeleteValue = 0
+                                        AND obe.Bill_Equal_DeleteValue = 0");
         try {
             DB::beginTransaction();
-            DB::update("update order_bill_equal set Bill_Equal_Sale_Real = $bill_sale_real, Bill_Equal_Value = 2 where Bill_Equal_ID = $bill_equal_id");
+            DB::update("update order_bill_equal set Bill_Equal_Sale_Real = $bill_sale_real, Bill_Equal_Value = 0 where Bill_Equal_ID = $bill_equal_id");
             for ($i = 0;$i < count($Bill_ID_List);$i++) {
                 $Bill_ID = $Bill_ID_List[$i]->Bill_ID;
-                DB::update("UPDATE order_bill SET Bill_Value = 2 WHERE Bill_ID = $Bill_ID");
+                DB::update("UPDATE order_bill SET Bill_Value = 0 WHERE Bill_ID = $Bill_ID");
             }
             DB::commit();
             return ["status"=>"success","message"=>"结单成功"];
@@ -350,7 +373,9 @@ class EposController extends Controller
                                         FROM order_bill AS ob,order_bill_equal AS obe
                                         WHERE ob.Bill_Date = obe.Bill_Equal_Date
                                         AND ob.Bill_DeskID = obe.Bill_Equal_DeskID
-                                        AND obe.Bill_Equal_ID = $Bill_Equal_ID");
+                                        AND obe.Bill_Equal_ID = $Bill_Equal_ID
+                                        AND ob.Bill_DeleteValue = 0
+                                        AND obe.Bill_Equal_DeleteValue = 0");
         try {
             DB::beginTransaction();
             DB::update("UPDATE order_bill_equal SET Bill_Equal_DeleteValue = 1 WHERE Bill_Equal_ID = $Bill_Equal_ID");
@@ -374,17 +399,17 @@ class EposController extends Controller
         $date_last_day= "'".date('Y-m-d', strtotime('-1 day'))."'";
         $today_income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
                                         FROM order_bill_equal
-                                        WHERE Bill_Equal_Value = 2
+                                        WHERE Bill_Equal_Value = 0
                                         AND Bill_Equal_DeleteValue <> 1
                                         AND DATE(Bill_Equal_Date) = $date_today");
         $last_day_income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
                                         FROM order_bill_equal
-                                        WHERE Bill_Equal_Value = 2
+                                        WHERE Bill_Equal_Value = 0
                                         AND Bill_Equal_DeleteValue <> 1
                                         AND DATE(Bill_Equal_Date) = $date_last_day");
         $all_income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
                                         FROM order_bill_equal
-                                        WHERE Bill_Equal_Value = 2
+                                        WHERE Bill_Equal_Value = 0
                                         AND Bill_Equal_DeleteValue <> 1");
         $data = ["today_income_info"=>$today_income_info,"last_day_income_info"=>$last_day_income_info,"all_income_info"=>$all_income_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
@@ -400,7 +425,7 @@ class EposController extends Controller
                                                     SELECT ob.Bill_DishID, ob.Bill_DishNum, od.Dish_Cost, ob.Bill_DishNum * od.Dish_Cost AS 'All_Dish_Cost'
                                                     FROM order_bill AS ob, order_dish AS od
                                                     WHERE ob.Bill_DishID = od.Dish_ID
-                                                    AND ob.Bill_Value = 2
+                                                    AND ob.Bill_Value = 0
                                                     AND ob.Bill_DeleteValue <> 1
                                                     AND DATE(ob.Bill_Date) = $date_today
                                                 ) AS subquery");
@@ -409,7 +434,7 @@ class EposController extends Controller
                                                     SELECT ob.Bill_DishID, ob.Bill_DishNum, od.Dish_Cost, ob.Bill_DishNum * od.Dish_Cost AS 'All_Dish_Cost'
                                                     FROM order_bill AS ob, order_dish AS od
                                                     WHERE ob.Bill_DishID = od.Dish_ID
-                                                    AND ob.Bill_Value = 2
+                                                    AND ob.Bill_Value = 0
                                                     AND ob.Bill_DeleteValue <> 1
                                                     AND DATE(ob.Bill_Date) = $date_last_day
                                                 ) AS subquery");
@@ -418,7 +443,7 @@ class EposController extends Controller
                                                     SELECT ob.Bill_DishID, ob.Bill_DishNum, od.Dish_Cost, ob.Bill_DishNum * od.Dish_Cost AS 'All_Dish_Cost'
                                                     FROM order_bill AS ob, order_dish AS od
                                                     WHERE ob.Bill_DishID = od.Dish_ID
-                                                    AND ob.Bill_Value = 2
+                                                    AND ob.Bill_Value = 0
                                                     AND ob.Bill_DeleteValue <> 1
                                                 ) AS subquery");
         $data = ["today_cost_info"=>$today_cost_info,"last_day_cost_info"=>$last_day_cost_info,"all_cost_info"=>$all_cost_info];
@@ -432,5 +457,45 @@ class EposController extends Controller
                                             WHERE Item_DeleteValue <> 1");
         $data = ["item_info"=>$item_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+
+    //登录
+    public function login_token(Request $request)
+    {
+
+        $pwd = "'". $request->get("pwd") ."'";
+        $pwd_md5 = "'". $request->get("pwd_md5") ."'";
+        $res = DB::select("select Token_ID, Token, Token_MD5, Token_Cate
+                from order_token WHERE Token = $pwd");
+        if(count($res) > 0)
+        {
+            if ($res[0]->Token_MD5 == ""){
+                try {
+                    DB::update("
+                        update order_token set Token_MD5  = $pwd_md5 where Token = $pwd");
+                    $request->session()->put("pwd",$pwd_md5);
+                    $request->session()->put("pwd_cate",$res[0]->Token_Cate);
+                    if ($res[0]->Token_Cate == 'qiantai') {
+                        return ["status"=>"success","message"=>"登陆成功","pid"=>$res[0]->Token_ID,"cate"=>$res[0]->Token_Cate,"href"=>route("epos_home")];
+                    }elseif ($res[0]->Token_Cate == 'houchu') {
+                        return ["status"=>"success","message"=>"登陆成功","pid"=>$res[0]->Token_ID,"cate"=>$res[0]->Token_Cate,"href"=>route("epos_bill_back")];
+                    }
+                }catch (\Exception $exception) {
+                    return ["status"=>"fail","message"=>"登录失败，可能是数据库写入错误","href"=>route("epos_login")];
+//                    return ["status"=>"fail","message"=>$pwd_md5,"href"=>route("login")];
+                }
+            }else{
+                $request->session()->put("pwd",$pwd_md5);
+                $request->session()->put("pwd_cate",$res[0]->Token_Cate);
+                if ($res[0]->Token_Cate == 'qiantai') {
+                    return ["status"=>"success","message"=>"登陆成功","pid"=>$res[0]->Token_ID,"cate"=>$res[0]->Token_Cate,"href"=>route("epos_home")];
+                }elseif ($res[0]->Token_Cate == 'houchu') {
+                    return ["status"=>"success","message"=>"登陆成功","pid"=>$res[0]->Token_ID,"cate"=>$res[0]->Token_Cate,"href"=>route("epos_bill_back")];
+                }
+            }
+        }else{
+            return ["status"=>"fail","message"=>"登录失败，用户不存在","href"=>route("epos_login")];
+            //这里是没查询到用户
+        }
     }
 }
