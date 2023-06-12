@@ -112,7 +112,7 @@ class EposController extends Controller
                                                 WHERE ob.Bill_Equal_DeskID = od.Desk_ID
                                                 AND Bill_Equal_DeleteValue = 0
                                                 AND DATE(Bill_Equal_Date) = $date
-                                                ORDER BY CASE WHEN Bill_Equal_Value = 0 THEN 0 ELSE 1 END, Bill_Equal_Date DESC;");
+                                                ORDER BY CASE WHEN Bill_Equal_Value = 0 THEN 1 ELSE 0 END, Bill_Equal_Date DESC;");
         $data = ["bill_equal_info"=>$bill_equal_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
