@@ -66,9 +66,8 @@
         <div style="height: 15px;width: 100%"></div>
         <div style="margin-left: 20px">请选择桌号：</div>
         <div style="height: 11px;width: 100%"></div>
-        <div id="Desk_ID" style="height: calc(100vh - 170px);width: 100%;overflow-y: auto">
-{{--            <div style="margin: 10px;padding: 10px;height: 50px;background-color: #e8e8e8;border-radius: 10px;line-height: 30px;text-align: center"></div>--}}
-        </div>
+        <div id="Desk_ID" style="height: calc(100vh - 170px);width: 100%;overflow-y: auto"></div>
+        <div style="height: 60px;width: 100%;"></div>
         <div class="row" style="position: absolute;bottom: 0;height: 60px;width: 100%;z-index: 99">
             <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/') }}'">点餐</div>
             <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/purchase') }}'">采购</div>
@@ -114,13 +113,29 @@
                     div.style.borderRadius = '10px';
                     div.style.lineHeight = '30px';
                     div.style.textAlign = 'center';
-                    div.setAttribute("onclick","window.open('{{ URL::to('/epos/order') }}" + "?desk=" + _resJson[i].Desk_ID + "')");
+                    div.setAttribute("onclick","openDesk(" + _resJson[i].Desk_ID + ")");
                     div.innerHTML = _resJson[i].Desk_Name;
                     dom.append(div);
                 }
             }
         }
         freshPage();
+
+        function openDesk(Desk_ID) {
+            let _formData = new FormData;
+            _formData.append("desk_id", Desk_ID);
+            _formData.append("_token", "{{ csrf_token() }}");
+            fetch("{{ URL::to('/epos/get_desk_bill') }}", {method: 'post', body: _formData}).then(function (_res) {
+                return _res.json();
+            }).then(function (_resJson) {
+                if (_resJson.data.desk_value == "true") {
+                    {{--window.open("'{{ URL::to('/epos/order') }}" + "?desk=" + Desk_ID +"'")--}}
+                    window.open("/epos/order?desk=" + Desk_ID);
+                }else {
+                    layer.msg("当前桌还有订单未完成！")
+                }
+            })
+        }
     </script>
 </body>
 </html>

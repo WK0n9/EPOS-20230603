@@ -35,6 +35,7 @@ Route::middleware(["CheckLogin"])->prefix("/epos/")->group(function (){
     Route::post('/get_bill_equal', [\App\Http\Controllers\EposController::class,"get_bill_equal"]);//获取账单所需信息
     Route::post('/get_ori_order', [\App\Http\Controllers\EposController::class,"get_ori_order"]);//加单时获取已点信息
     Route::post('/get_finish', [\App\Http\Controllers\EposController::class,"get_finish"]);//获取结单信息
+    Route::post('/get_desk_bill', [\App\Http\Controllers\EposController::class,"get_desk_bill"]);//获取当前桌账单信息
 
     Route::post('/add_order', [\App\Http\Controllers\EposController::class,"add_order"]);//提交点单
     Route::post('/add_new_order', [\App\Http\Controllers\EposController::class,"add_new_order"]);//提交加单

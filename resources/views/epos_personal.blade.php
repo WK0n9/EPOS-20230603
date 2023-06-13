@@ -123,6 +123,7 @@
                 <div class="col-8 row_line" style="">总计支出/收入差</div>
                 <div id="all-real-profit" class="col-4 row_line" style=""></div>
             </div>
+            <div style="height: 60px;width: 100%;"></div>
         </div>
         <div class="row" style="position: absolute;bottom: 0;height: 60px;width: 100%;z-index: 99">
             <div class="col-3 button_bottom" onclick="window.location.href = '{{ URL::to('/epos/') }}'">点餐</div>

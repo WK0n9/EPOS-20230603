@@ -115,8 +115,8 @@
     </div>
 
     <script type="text/html" id="finish-template">
-        <div id="get_id" style="text-align: left;padding-left: 0;" data-id="{%= list[0].Desk_ID %}" data-eid="{%= list[0].Bill_Equal_ID %}">桌号：{%= list[0].Desk_Name %}</div>
-        <div style="text-align: left;padding-left: 0;">时间：{%= list[0].Bill_Equal_Date %}</div>
+        <div id="get_id" style="text-align: left;padding-left: 0;" data-id="{%= list.finish_info[0].Desk_ID %}" data-eid="{%= list.finish_info[0].Bill_Equal_ID %}">桌号：{%= list.finish_info[0].Desk_Name %}</div>
+        <div style="text-align: left;padding-left: 0;">时间：{%= list.finish_info[0].Bill_Equal_Date %}</div>
         <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
         <div class="row" style="padding: 7px 0 10px 0">
             <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
@@ -124,24 +124,55 @@
             <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">单价</div>
             <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">总价</div>
         </div>
-        {% for(let i=0 ; i<list.length; i++){ %}
-        <div class="row">
-            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishName %}</div>
-            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishNum %}</div>
-            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishSale %}</div>
-            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[i].Bill_DishSaleEqual %}</div>
-        </div>
+        {% for(let j=1 ; j <= list.max_value; j++){ %}
+            {% let tip = 0; %}
+            {% for(let i=0 ; i < list.finish_info.length; i++){ %}
+                {% if(list.finish_info[i].Bill_Value == j && j == 1) { %}
+                    <div class="row">
+                        <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishName %}</div>
+                        <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishNum %}</div>
+                        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSale %}</div>
+                        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSaleEqual %}</div>
+                    </div>
+                    {% tip++; %}
+                {% } %}
+            {% } %}
+            {% if(tip != 0) { %}
+                {% continue; %}
+            {% } %}
+            <div class="row" style="padding: 7px 0 10px 0">
+                <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">加单</div>
+                <div class="col" style="text-align: center;padding-left: 0;padding-right: 10px"></div>
+            </div>
+            {% for(let i=0 ; i < list.finish_info.length; i++){ %}
+                {% if(list.finish_info[i].Bill_Value == j) { %}
+                    <div class="row">
+                        <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishName %}</div>
+                        <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishNum %}</div>
+                        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSale %}</div>
+                        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSaleEqual %}</div>
+                    </div>
+                {% } %}
+            {% } %}
         {% } %}
+{{--        {% for(let i=0 ; i<list.finish_info.length; i++){ %}--}}
+{{--        <div class="row">--}}
+{{--            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishName %}</div>--}}
+{{--            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishNum %}</div>--}}
+{{--            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSale %}</div>--}}
+{{--            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSaleEqual %}</div>--}}
+{{--        </div>--}}
+{{--        {% } %}--}}
         <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
         <div class="row" style="padding-top: 7px;">
             <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
             <div class="col-5"></div>
-            <div class="col-3" id="plan-finish" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list[0].Bill_Equal_Sale %}</div>
+            <div class="col-3" id="plan-finish" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
         </div>
         <div class="row">
             <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">实收金额</div>
             <div class="col-5"></div>
-            <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list[0].Bill_Equal_ID %}">{%= list[0].Bill_Equal_Sale %}</div>
+            <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list.finish_info[0].Bill_Equal_ID %}">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
         </div>
     </script>
 
@@ -359,7 +390,7 @@
                     console.log(_resJson);
                     if (_resJson.status == "success"){
                         let gethtml = document.getElementById('finish-template').innerHTML;
-                        jetpl(gethtml).render({list:_resJson.data.finish_info}, function(html){
+                        jetpl(gethtml).render({list:_resJson.data}, function(html){
                             $('#finish_div').html(html);
                         });
                     }else {

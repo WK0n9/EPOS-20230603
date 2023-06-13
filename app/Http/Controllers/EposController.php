@@ -121,18 +121,31 @@ class EposController extends Controller
     {
         $bill_equal_id = $request->get("bill_equal_id");
 
-        $ori_order_info = DB::select("SELECT ob.Bill_DishID, ob.Bill_DishName, ob.Bill_DishNum
-                                FROM order_bill AS ob,order_bill_equal AS obe,order_cate AS oc,order_dish AS od
-                                WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
-                                AND obe.Bill_Equal_Date = ob.Bill_Date
-                                AND ob.Bill_DishID = od.Dish_ID
-                                AND od.Dish_Cate = oc.Cate_ID
-                                AND obe.Bill_Equal_ID = $bill_equal_id
-                                AND ob.Bill_DeleteValue = 0
-                                AND obe.Bill_Equal_DeleteValue = 0
-                                AND oc.Cate_DeleteValue = 0
-                                AND od.Dish_DeleteValue = 0
-                                ORDER BY oc.Cate_ID ASC;");
+//        $ori_order_info = DB::select("SELECT ob.Bill_DishID, ob.Bill_DishName, ob.Bill_DishNum
+//                                FROM order_bill AS ob,order_bill_equal AS obe,order_cate AS oc,order_dish AS od
+//                                WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
+//                                AND obe.Bill_Equal_Date = ob.Bill_Date
+//                                AND ob.Bill_DishID = od.Dish_ID
+//                                AND od.Dish_Cate = oc.Cate_ID
+//                                AND obe.Bill_Equal_ID = $bill_equal_id
+//                                AND ob.Bill_DeleteValue = 0
+//                                AND obe.Bill_Equal_DeleteValue = 0
+//                                AND oc.Cate_DeleteValue = 0
+//                                AND od.Dish_DeleteValue = 0
+//                                ORDER BY oc.Cate_ID ASC");
+        $ori_order_info = DB::select("SELECT ob.Bill_DishID, ob.Bill_DishName, SUM(ob.Bill_DishNum) AS Bill_DishNum
+                                                FROM order_bill AS ob,order_bill_equal AS obe,order_cate AS oc,order_dish AS od
+                                                WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
+                                                AND obe.Bill_Equal_Date = ob.Bill_Date
+                                                AND ob.Bill_DishID = od.Dish_ID
+                                                AND od.Dish_Cate = oc.Cate_ID
+                                                AND obe.Bill_Equal_ID = $bill_equal_id
+                                                AND ob.Bill_DeleteValue = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0
+                                                AND oc.Cate_DeleteValue = 0
+                                                AND od.Dish_DeleteValue = 0
+                                                GROUP BY ob.Bill_DishID, ob.Bill_DishName, oc.Cate_ID
+                                                ORDER BY oc.Cate_ID ASC");
         $data = ["ori_order_info"=>$ori_order_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
@@ -143,7 +156,7 @@ class EposController extends Controller
 
         $finish_info = DB::select("SELECT ob.Bill_ID, ob.Bill_DishName, ob.Bill_DishNum, ob.Bill_DishSale, ob.Bill_DishSaleEqual,
                                                    obe.Bill_Equal_ID, obe.Bill_Equal_Date, obe.Bill_Equal_Sale,
-                                                   ode.Desk_ID, ode.Desk_Name
+                                                   ode.Desk_ID, ode.Desk_Name, ob.Bill_Value
                                                 FROM order_bill AS ob,order_bill_equal AS obe,order_desk AS ode,order_cate AS oc,order_dish AS od
                                                 WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
                                                 AND obe.Bill_Equal_Date = ob.Bill_Date
@@ -156,8 +169,32 @@ class EposController extends Controller
                                                 AND oc.Cate_DeleteValue = 0
                                                 AND od.Dish_DeleteValue = 0
                                                 AND ode.Desk_DeleteValue = 0
-                                                ORDER BY oc.Cate_ID ASC;");
-        $data = ["finish_info"=>$finish_info];
+                                                ORDER BY oc.Cate_ID ASC");
+        //获取当前最大加单次数
+        $max_value = 1;
+        foreach ($finish_info as $info) {
+            if ($info->Bill_Value > $max_value) {
+                $max_value = $info->Bill_Value;
+            }
+        }
+        $data = ["finish_info"=>$finish_info,"max_value"=>$max_value];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+    //获取当前桌账单信息
+    public function get_desk_bill(Request $request)
+    {
+        $desk_id = $request->get("desk_id");
+
+        $desk_bill_info = DB::select("SELECT Bill_Equal_Value
+                                                FROM order_bill_equal
+                                                WHERE Bill_Equal_DeskID = $desk_id
+                                                AND Bill_Equal_Value = 1
+                                                AND Bill_Equal_DeleteValue <> 1");
+        if ($desk_bill_info == []) {
+            $data = ["desk_value"=>"true"];
+        } else {
+            $data = ["desk_value"=>"false"];
+        }
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
 
@@ -198,13 +235,21 @@ class EposController extends Controller
         $bill_equal_id = $request->get("bill_equal_id");
         $dish_count = $request->get("dish_count");
         $dish_equal = $request->get("dish_equal");
-        $order_info = DB::select("SELECT ob.Bill_DishID,ob.Bill_ID,ob.Bill_Date
+        $order_info = DB::select("SELECT ob.Bill_DishID,ob.Bill_ID,ob.Bill_Date,ob.Bill_Value
                                             FROM order_bill AS ob,order_bill_equal AS obe
                                             WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
                                             AND obe.Bill_Equal_Date = ob.Bill_Date
                                             AND obe.Bill_Equal_ID = $bill_equal_id
                                             AND ob.Bill_DeleteValue = 0
                                             AND obe.Bill_Equal_DeleteValue = 0");
+        //获取当前最大加单次数
+        $max_value = 1;
+        foreach ($order_info as $info) {
+            if ($info->Bill_Value > $max_value) {
+                $max_value = $info->Bill_Value;
+            }
+        }
+
         try {
             DB::beginTransaction();
             //
@@ -214,23 +259,24 @@ class EposController extends Controller
                 $dish_num = "'".$request->get("dish_num_".$i)."'";
                 $dish_sale = "'".$request->get("dish_sale_".$i)."'";
                 $dish_sale_equal = "'".$request->get("dish_sale_equal_".$i)."'";
-                $tip = 0;
-                for ($j = 0;$j < count($order_info);$j++) {
-                    $bill_dish_id = $order_info[$j]->Bill_DishID;
-                    $bill_id = $order_info[$j]->Bill_ID;
-                    if ($dish_id == $bill_dish_id) {
-                        $tip = 1;
-                        DB::update("UPDATE order_bill SET Bill_DishNum = Bill_DishNum + $dish_num, Bill_DishSaleEqual = Bill_DishSaleEqual + $dish_sale_equal, Bill_Value = 2 WHERE Bill_ID = $bill_id");
-                        break;
-                    }
-                }
-                if ($tip != 0) {
-                    continue;
-                }
+//                $tip = 0;
+//                for ($j = 0;$j < count($order_info);$j++) {
+//                    $bill_dish_id = $order_info[$j]->Bill_DishID;
+//                    $bill_id = $order_info[$j]->Bill_ID;
+//                    if ($dish_id == $bill_dish_id) {
+//                        $tip = 1;
+//                        DB::update("UPDATE order_bill SET Bill_DishNum = Bill_DishNum + $dish_num, Bill_DishSaleEqual = Bill_DishSaleEqual + $dish_sale_equal, Bill_Value = 2 WHERE Bill_ID = $bill_id");
+//                        break;
+//                    }
+//                }
+//                if ($tip != 0) {
+//                    continue;
+//                }
                 $date_ori = $order_info[0]->Bill_Date;
                 $date = "'".$date_ori."'";
+                $now_value = $max_value + 1;
                 DB::insert("insert into order_bill (Bill_DeskID, Bill_Date, Bill_DishID, Bill_DishName, Bill_DishNum, Bill_DishSale, Bill_DishSaleEqual, Bill_Value, Bill_DeleteValue)
-                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, 2, 0)");
+                    values ($desk_id, $date, $dish_id, $dish_name, $dish_num, $dish_sale, $dish_sale_equal, $now_value, 0)");
             }
             DB::update("update order_bill_equal set Bill_Equal_Sale = Bill_Equal_Sale + $dish_equal where Bill_Equal_ID = $bill_equal_id");
             DB::commit();

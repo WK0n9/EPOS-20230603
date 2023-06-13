@@ -51,9 +51,11 @@
 
 </head>
 <body>
-    <div style="height: 40vh;width: 100%"></div>
+    <div style="height: 30vh;width: 100%"></div>
     <div class="row" style="align-items: center;justify-content: center;height: 100%;">
         <div style="width: 300px;">
+            <div style="height: 80px;line-height: 80px;text-align: center;font-size: 45px;font-weight: bold">江 湖 鱼 坊</div>
+            <div style="height: 40px;width: 100%"></div>
             <div class="input-group flex-nowrap">
                 <span class="input-group-text">口令</span>
                 <input type="password" id="pwd" class="form-control" placeholder="输入登录口令">
