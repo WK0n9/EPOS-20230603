@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Psr\Container\NotFoundExceptionInterface;
 
-class CheckLogin
+class CheckLoginEPOS
 {
     /**
      * Handle an incoming request.
@@ -17,15 +17,6 @@ class CheckLogin
      */
     public function handle(Request $request, Closure $next)
     {
-//        try {
-//            if(!$request->session()->has("pwd"))
-//            {
-//                return redirect()->route('epos_login');
-//            }
-//            return $next($request);
-//        } catch (NotFoundExceptionInterface $e) {
-//        } catch (ContainerExceptionInterface $e) {
-//        }
         try {
             if(!$request->session()->has("pwd"))
             {
