@@ -475,6 +475,18 @@
             })
         });
     }
+    document.addEventListener("visibilitychange", () => {
+        if(document.hidden) {
+            // 页面被挂起
+            layer.msg("页面可能已经发生改变！如果没有自动刷新，请手动刷新后继续使用！", {
+                time: 1000000,
+            })
+        }
+        else {
+            // 页面呼出
+            window.location.reload();
+        }
+    });
 </script>
 </body>
 </html>

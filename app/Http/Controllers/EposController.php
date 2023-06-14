@@ -51,7 +51,8 @@ class EposController extends Controller
     public function get_index()
     {
         $desk_info = DB::select("select * from order_desk WHERE Desk_DeleteValue = 0 ORDER BY `Desk_Order` ASC");
-        $data = ["desk_info"=>$desk_info];
+        $bill_info = DB::select("select * from order_bill_equal WHERE Bill_Equal_Value = 1 AND Bill_Equal_DeleteValue <> 1");
+        $data = ["desk_info"=>$desk_info,"bill_info"=>$bill_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
     //获取点餐所需信息
@@ -178,6 +179,28 @@ class EposController extends Controller
             }
         }
         $data = ["finish_info"=>$finish_info,"max_value"=>$max_value];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+    //获取结单信息
+    public function get_finish_view(Request $request)
+    {
+        $bill_equal_id = $request->get("Bill_Equal_ID");
+
+        $finish_info = DB::select("SELECT ob.Bill_ID, ob.Bill_DishName, SUM(ob.Bill_DishNum) AS Bill_DishNum, ob.Bill_DishSale, SUM(ob.Bill_DishSaleEqual) AS Bill_DishSaleEqual,
+                                                   obe.Bill_Equal_ID, obe.Bill_Equal_Date, obe.Bill_Equal_Sale, obe.Bill_Equal_Sale_Real,
+                                                   ode.Desk_ID, ode.Desk_Name
+                                                FROM order_bill AS ob,order_bill_equal AS obe,order_desk AS ode,order_cate AS oc,order_dish AS od
+                                                WHERE obe.Bill_Equal_DeskID = ob.Bill_DeskID
+                                                AND obe.Bill_Equal_Date = ob.Bill_Date
+                                                AND ob.Bill_DeskID = ode.Desk_ID
+                                                AND ob.Bill_DishID = od.Dish_ID
+                                                AND od.Dish_Cate = oc.Cate_ID
+                                                AND obe.Bill_Equal_ID = $bill_equal_id
+                                                AND ob.Bill_DeleteValue = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0
+                                                GROUP BY ob.Bill_DishID, ob.Bill_DishName, oc.Cate_ID, ob.Bill_ID
+                                                ORDER BY oc.Cate_ID ASC");
+        $data = ["finish_info"=>$finish_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
     //获取当前桌账单信息

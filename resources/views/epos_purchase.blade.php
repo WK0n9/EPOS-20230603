@@ -132,12 +132,21 @@
             </div>
         </div>
         <div style="height: 20px;width: 100%"></div>
-        <div>
-            <div>菜品类别</div>
-            <div class="input-group flex-nowrap">
-                <input type="text" id="addDishCate" class="form-control" placeholder="请输入类别" onfocus="getDishCateFocus()">
-            </div>
+        <div class="mb-3">
+            <label class="col-form-label">菜品类别</label>
+            <select id="addDishCate" class="form-select form-control" style="width: 100%;margin: 0;">
+                <option data-id="-1" value="-1">请选择</option>
+                {% for(let i = 0;i < list.length;i++) { %}
+                <option data-id="{%= list[i].Cate_ID %}" value="{%= list[i].Cate_ID %}">{%= list[i].Cate_Name %}</option>
+                {% } %}
+            </select>
         </div>
+{{--        <div>--}}
+{{--            <div>菜品类别</div>--}}
+{{--            <div class="input-group flex-nowrap">--}}
+{{--                <input type="text" id="addDishCate" class="form-control" placeholder="请输入类别" onfocus="getDishCateFocus()">--}}
+{{--            </div>--}}
+{{--        </div>--}}
         <div style="height: 20px;width: 100%"></div>
         <div>
             <div>成本价</div>
@@ -172,14 +181,23 @@
             </div>
         </div>
         <div style="height: 20px;width: 100%"></div>
-        <div>
-            <div>菜品类别</div>
-            <div class="input-group flex-nowrap">
-                <input type="text" id="oriDishCateID" class="form-control" placeholder="" value="{%= list.Dish_Cate %}" style="display: none" disabled>
-                <input type="text" id="oriDishCate" class="form-control" placeholder="" value="{%= list.Dish_Cate_Name %}" disabled>
-                <input type="text" id="editDishCate" class="form-control" placeholder="请输入新类别" onfocus="getDishCateFocus()">
-            </div>
+        <div class="mb-3">
+            <label class="col-form-label">菜品类别</label>
+            <select id="editDishCate" class="form-select form-control" style="width: 100%;margin: 0;">
+                <option data-id="-1" value="-1">请选择</option>
+                {% for(let i = 0;i < list.data.cate_info.length;i++) { %}
+                <option data-id="{%= list.data.cate_info[i].Cate_ID %}" value="{%= list.data.cate_info[i].Cate_ID %}">{%= list.data.cate_info[i].Cate_Name %}</option>
+                {% } %}
+            </select>
         </div>
+{{--        <div>--}}
+{{--            <div>菜品类别</div>--}}
+{{--            <div class="input-group flex-nowrap">--}}
+{{--                <input type="text" id="oriDishCateID" class="form-control" placeholder="" value="{%= list.Dish_Cate %}" style="display: none" disabled>--}}
+{{--                <input type="text" id="oriDishCate" class="form-control" placeholder="" value="{%= list.Dish_Cate_Name %}" disabled>--}}
+{{--                <input type="text" id="editDishCate" class="form-control" placeholder="请输入新类别">--}}
+{{--            </div>--}}
+{{--        </div>--}}
         <div style="height: 20px;width: 100%"></div>
         <div>
             <div>成本价</div>
@@ -254,8 +272,6 @@
         function DishInfo(){}
         DishInfo.prototype.Dish_ID = [];
         DishInfo.prototype.Dish_Name = [];
-        DishInfo.prototype.Cate_ID = [];
-        DishInfo.prototype.Cate_Name = [];
         let dishInfo = new DishInfo();
 
         //初始化菜品列表
@@ -345,7 +361,19 @@
                     events: {
                         'click #dish_edit':function (e,value, row, index) {
                             console.log(row)
-                            editDish(row);
+                            let _formData = new FormData;
+                            _formData.append('_token', "{{ csrf_token() }}");
+                            fetch("/epos/get_cate", {method: 'post', body: _formData}).then(function (_res) {
+                                return _res.json();
+                            }).then(function (_resJson) {
+                                Object.assign(_resJson, row);
+                                console.log(_resJson);
+                                if (_resJson.status == "success"){
+                                    editDish(_resJson);
+                                }else {
+                                    layer.msg("出错了！错误原因：" + _resJson.message);
+                                }
+                            })
                         },
                         'click #dish_delete':function (e,value, row, index) {
                             layer.confirm('确认删除？', {
@@ -526,16 +554,24 @@
             $("#purModal").on('show.bs.modal',function () {
                 document.getElementsByClassName('modal-title')[0].innerHTML = '添加菜品';
                 document.getElementById("purButton").setAttribute("onclick","confirmDish()");
-                let gethtml = document.getElementById('dish-template').innerHTML;
-                jetpl(gethtml).render({list: ''}, function(html){
-                    $('#pur_div').html(html);
-                });
+                let _formData = new FormData;
+                _formData.append('_token', "{{ csrf_token() }}");
+                fetch("/epos/get_cate", {method: 'post', body: _formData}).then(function (_res) {
+                    return _res.json();
+                }).then(function (_resJson) {
+                    console.log(_resJson);
+                    if (_resJson.status == "success"){
+                        let gethtml = document.getElementById('dish-template').innerHTML;
+                        jetpl(gethtml).render({list: _resJson.data.cate_info}, function(html){
+                            $('#pur_div').html(html);
+                        });
+                    }else {
+                        layer.msg("出错了！错误原因：" + _resJson.message);
+                    }
+                })
                 //菜品名称栏输入数据时弹出推荐项
                 $( "#addDishName" ).autocomplete({
                     source: dishInfo.Dish_Name
-                });
-                $( "#addDishCate" ).autocomplete({
-                    source: dishInfo.Cate_Name
                 });
                 $('#purModal').off('show.bs.modal');
             })
@@ -563,12 +599,10 @@
                 jetpl(gethtml).render({list: Dish_List}, function(html){
                     $('#pur_div').html(html);
                 });
+                document.getElementById('editDishCate').value = Dish_List.Dish_Cate;
                 //菜品名称栏输入数据时弹出推荐项
                 $( "#editDishName" ).autocomplete({
                     source: dishInfo.Dish_Name
-                });
-                $( "#editDishCate" ).autocomplete({
-                    source: dishInfo.Cate_Name
                 });
                 $('#purModal').off('show.bs.modal');
             })
@@ -601,22 +635,23 @@
         //提交菜品添加
         function confirmDish() {
             let Dish_Name = document.getElementById('addDishName').value;
-            let Dish_Cate_ID = -1
+            // let Dish_Cate_ID = -1
+            // let Dish_Cate = document.getElementById('addDishCate').value;
+            // for (let i = 0;i < dishInfo.Cate_Name.length;i++){
+            //     if (Dish_Cate == dishInfo.Cate_Name[i]){
+            //         Dish_Cate_ID = dishInfo.Cate_ID[i];
+            //     }
+            // }
             let Dish_Cate = document.getElementById('addDishCate').value;
-            for (let i = 0;i < dishInfo.Cate_Name.length;i++){
-                if (Dish_Cate == dishInfo.Cate_Name[i]){
-                    Dish_Cate_ID = dishInfo.Cate_ID[i];
-                }
-            }
             let Dish_Cost = document.getElementById('addDishCost').value;
             let Dish_Sale = document.getElementById('addDishSale').value;
-            if (Dish_Name == '' || (Dish_Cate_ID == -1 && Dish_Cate == '') || Dish_Cost == '' || Dish_Sale == ''){
+            if (Dish_Name == '' || Dish_Cate == -1 || Dish_Cost == '' || Dish_Sale == ''){
                 layer.msg("选项不能为空！")
             }else {
                 let _formData = new FormData;
                 _formData.append('_token', "{{ csrf_token() }}");
                 _formData.append('Dish_Name',Dish_Name);
-                _formData.append('Dish_Cate',Dish_Cate_ID);
+                _formData.append('Dish_Cate',Dish_Cate);
                 _formData.append('Dish_Cost',Dish_Cost);
                 _formData.append('Dish_Sale',Dish_Sale);
 
@@ -674,15 +709,16 @@
             let Dish_ID = document.getElementById('oriDishID').value;
             let Ori_Dish_Name = document.getElementById('oriDishName').value;
             let Edit_Dish_Name = document.getElementById('editDishName').value;
-            let Ori_Dish_Cate_ID = document.getElementById('oriDishCateID').value;
+            // let Ori_Dish_Cate_ID = document.getElementById('oriDishCateID').value;
             // let Ori_Dish_Cate_Name = document.getElementById('oriDishCate').value;
-            let Edit_Dish_Cate_ID = -1
-            let Edit_Dish_Cate_Name = document.getElementById('editDishCate').value;
-            for (let i = 0;i < dishInfo.Cate_Name.length;i++){
-                if (Edit_Dish_Cate_Name == dishInfo.Cate_Name[i]){
-                    Edit_Dish_Cate_ID = dishInfo.Cate_ID[i];
-                }
-            }
+            // let Edit_Dish_Cate_ID = -1
+            // let Edit_Dish_Cate_Name = document.getElementById('editDishCate').value;
+            // for (let i = 0;i < dishInfo.Cate_Name.length;i++){
+            //     if (Edit_Dish_Cate_Name == dishInfo.Cate_Name[i]){
+            //         Edit_Dish_Cate_ID = dishInfo.Cate_ID[i];
+            //     }
+            // }
+            let Edit_Dish_Cate = document.getElementById('editDishCate').value;
             let Ori_Dish_Cost = document.getElementById('oriDishCost').value;
             let Edit_Dish_Cost = document.getElementById('editDishCost').value;
             let Ori_Dish_Sale = document.getElementById('oriDishSale').value;
@@ -696,11 +732,12 @@
             }else {
                 _formData.append('Dish_Name',Edit_Dish_Name);
             }
-            if (Edit_Dish_Cate_Name == '') {
-                _formData.append('Dish_Cate',Ori_Dish_Cate_ID);
-            }else {
-                _formData.append('Dish_Cate',Edit_Dish_Cate_ID);
-            }
+            // if (Edit_Dish_Cate_Name == '') {
+            //     _formData.append('Dish_Cate',Ori_Dish_Cate_ID);
+            // }else {
+            //     _formData.append('Dish_Cate',Edit_Dish_Cate_ID);
+            // }
+            _formData.append('Dish_Cate',Edit_Dish_Cate);
             if (Edit_Dish_Cost == '') {
                 _formData.append('Dish_Cost',Ori_Dish_Cost);
             }else {
@@ -805,45 +842,45 @@
                 })
             }
         }
-        function getDishCateFocus() {
-            let _formData = new FormData;
-            _formData.append("_token", "{{ csrf_token() }}");
+        {{--function getDishCateFocus() {--}}
+        {{--    let _formData = new FormData;--}}
+        {{--    _formData.append("_token", "{{ csrf_token() }}");--}}
 
-            let data;
-            //先清空再写入，避免组件重复获得焦点时重复写入
-            dishInfo.Cate_ID.length = 0;
-            dishInfo.Cate_Name.length = 0;
-            getInfo('/epos/get_cate');
-            function getInfo(URL){
-                fetch(URL, {method: "post", body: _formData}).then(_res => {
-                    return _res.json();
-                }).then(_resJson => {
-                    if (_resJson.status == "fail") {
-                        layer.msg("出错了！错误原因：" + _resJson.message);
-                    }
-                    data = _resJson.data.cate_info;
-                    for (let i = 0; i < data.length; i++) {
-                        let num = 0;
-                        if (dishInfo.Cate_Name.length == 0){
-                            num = 1;
-                        }
-                        for (let j = 0; j < dishInfo.Cate_Name.length; j++) {
-                            if (data[i].Cate_Name == dishInfo.Cate_Name[j]) {
-                                num = 0;
-                                break;
-                            }
-                            num++;
-                        }
-                        if (num != 0 && data[i].Cate_Name != null) {
-                            dishInfo.Cate_ID.push(data[i].Cate_ID);
-                            dishInfo.Cate_Name.push(data[i].Cate_Name);
-                            console.log(dishInfo.Cate_ID)
-                            console.log(dishInfo.Cate_Name)
-                        }
-                    }
-                })
-            }
-        }
+        {{--    let data;--}}
+        {{--    //先清空再写入，避免组件重复获得焦点时重复写入--}}
+        {{--    dishInfo.Cate_ID.length = 0;--}}
+        {{--    dishInfo.Cate_Name.length = 0;--}}
+        {{--    getInfo('/epos/get_cate');--}}
+        {{--    function getInfo(URL){--}}
+        {{--        fetch(URL, {method: "post", body: _formData}).then(_res => {--}}
+        {{--            return _res.json();--}}
+        {{--        }).then(_resJson => {--}}
+        {{--            if (_resJson.status == "fail") {--}}
+        {{--                layer.msg("出错了！错误原因：" + _resJson.message);--}}
+        {{--            }--}}
+        {{--            data = _resJson.data.cate_info;--}}
+        {{--            for (let i = 0; i < data.length; i++) {--}}
+        {{--                let num = 0;--}}
+        {{--                if (dishInfo.Cate_Name.length == 0){--}}
+        {{--                    num = 1;--}}
+        {{--                }--}}
+        {{--                for (let j = 0; j < dishInfo.Cate_Name.length; j++) {--}}
+        {{--                    if (data[i].Cate_Name == dishInfo.Cate_Name[j]) {--}}
+        {{--                        num = 0;--}}
+        {{--                        break;--}}
+        {{--                    }--}}
+        {{--                    num++;--}}
+        {{--                }--}}
+        {{--                if (num != 0 && data[i].Cate_Name != null) {--}}
+        {{--                    dishInfo.Cate_ID.push(data[i].Cate_ID);--}}
+        {{--                    dishInfo.Cate_Name.push(data[i].Cate_Name);--}}
+        {{--                    console.log(dishInfo.Cate_ID)--}}
+        {{--                    console.log(dishInfo.Cate_Name)--}}
+        {{--                }--}}
+        {{--            }--}}
+        {{--        })--}}
+        {{--    }--}}
+        {{--}--}}
     </script>
 </body>
 </html>

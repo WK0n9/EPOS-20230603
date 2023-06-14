@@ -76,6 +76,22 @@
         </div>
     </div>
 
+    <script type="text/html" id="index-template">
+        {% for(let i = 0;i < list.desk_info.length;i++) { %}
+            {% let tip = 0; %}
+            {% for(let j = 0;j < list.bill_info.length;j++) { %}
+                {% if(list.bill_info[j].Bill_Equal_DeskID == list.desk_info[i].Desk_ID) { %}
+                    <div style="margin: 10px;padding: 10px;height: 50px;background-color: #e8e8e8;border-radius: 10px;line-height: 30px;text-align: center" onclick="openMsg()">{%= list.desk_info[i].Desk_Name %}</div>
+                    {% tip++; %}
+                    {% break; %}
+                {% } %}
+            {% } %}
+            {% if(tip == 0) { %}
+                <div style="margin: 10px;padding: 10px;height: 50px;background-color: #e8e8e8;border-radius: 10px;line-height: 30px;text-align: center" onclick="window.open('/epos/order?desk={%= list.desk_info[i].Desk_ID %}')">{%= list.desk_info[i].Desk_Name %}</div>
+            {% } %}
+        {% } %}
+    </script>
+
     <script>
         //有这样一中情形：假如存为书签的话，不能按照token获取用户数据，解决办法如下
         let _token = localStorage.getItem("_token");
@@ -96,11 +112,16 @@
             fetch("{{ URL::to('/epos/get_index') }}", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
-                console.log(_resJson.data.desk_info);
-                getDeskInfo(_resJson.data.desk_info);
+                console.log(_resJson.data);
+                // getDeskInfo(_resJson.data.desk_info);
+                let gethtml = document.getElementById('index-template').innerHTML;
+                jetpl(gethtml).render({list: _resJson.data}, function(html){
+                    $('#Desk_ID').html(html);
+                });
             })
         }
-        //写入桌号
+        //写入桌号(已废弃)
+        //都什么年代，还在用传统dom操作
         function getDeskInfo(_resJson){
             let dom = document.getElementById('Desk_ID');
             if(dom.children.length == 0) {
@@ -121,6 +142,10 @@
         }
         freshPage();
 
+        function openMsg() {
+            layer.msg("当前桌还有订单未完成！")
+        }
+
         function openDesk(Desk_ID) {
             let _formData = new FormData;
             _formData.append("desk_id", Desk_ID);
@@ -128,6 +153,7 @@
             fetch("{{ URL::to('/epos/get_desk_bill') }}", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
+                console.log(_resJson)
                 if (_resJson.data.desk_value == "true") {
                     {{--window.open("'{{ URL::to('/epos/order') }}" + "?desk=" + Desk_ID +"'")--}}
                     window.open("/epos/order?desk=" + Desk_ID);
@@ -136,6 +162,18 @@
                 }
             })
         }
+        document.addEventListener("visibilitychange", () => {
+            if(document.hidden) {
+                // 页面被挂起
+                layer.msg("页面可能已经发生改变！如果没有自动刷新，请手动刷新后继续使用！", {
+                    time: 1000000,
+                })
+            }
+            else {
+                // 页面呼出
+                window.location.reload();
+            }
+        });
     </script>
 </body>
 </html>
