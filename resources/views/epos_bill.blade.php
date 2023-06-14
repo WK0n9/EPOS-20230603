@@ -113,7 +113,7 @@
     </div>
 
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-账单</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-账单</div>
         <div style="height: 20px;width: 100%"></div>
         <div style="height: 40px;text-align: left">
             <button id="button_last_day" type="button" class="btn btn-info" style="margin-left: 20px" onclick="openLastDay()">前一天</button>

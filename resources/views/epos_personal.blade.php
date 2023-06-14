@@ -59,7 +59,7 @@
 </head>
 <body>
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-我的</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-我的</div>
         <div id="Desk_ID" style="height: calc(100vh - 120px);width: 100%;overflow-y: auto">
             <div class="row">
                 <div class="col-8 row_line" style="">今日总流水(应收)</div>

@@ -95,7 +95,7 @@
     </div>
 
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-采购</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-采购</div>
         <div style="height: 20px;width: 100%"></div>
         <div class="row" style="height: 40px">
             <div class="col-6" style="text-align: left">

@@ -62,7 +62,7 @@
 </head>
 <body>
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-点餐</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-点餐</div>
         <div style="height: 15px;width: 100%"></div>
         <div style="margin-left: 20px">请选择桌号：</div>
         <div style="height: 11px;width: 100%"></div>

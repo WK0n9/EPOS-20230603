@@ -109,7 +109,7 @@
     </div>
 
     <div>
-        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-下单</div>
+        <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-下单</div>
         <div id="Desk_ID" style="padding-left: 15px;height: 30px;width: 100%;line-height: 30px">桌号：</div>
         <div class="row" style="height: calc(100vh - 90px)">
             <div id="Cate" class="col-2" style="width: 100%;height: 100%;background-color: #e5e5e5;overflow-y: auto;padding: 0 5px 0 5px">
