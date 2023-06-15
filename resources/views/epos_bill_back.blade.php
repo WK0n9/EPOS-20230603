@@ -72,6 +72,26 @@
     </div>
 </div>
 
+{{--    结单界面--}}
+<div class="modal fade" tabindex="-1" id="finishViewModal">
+    <div class="modal-dialog" style="width: 97%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">详情(已结单)</h5>
+            </div>
+            <div class="modal-body" style="">
+                <div id="finish_view_div" style="font-size: 14px;height: calc(90vh - 200px);overflow-y: auto"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeFinishView()">关闭</button>
+                <button type="button" class="btn btn-success">打印</button>
+                {{--                <button type="button" class="btn btn-info" onclick="addDish()">加单</button>--}}
+                {{--                <button type="button" class="btn btn-danger" id="ydButton" onclick="confirmFinish()">结单</button>--}}
+            </div>
+        </div>
+    </div>
+</div>
+
 <div>
     <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-后厨</div>
     <div style="height: 20px;width: 100%"></div>
@@ -146,6 +166,37 @@
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">实收金额</div>
         <div class="col-5"></div>
         <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list.finish_info[0].Bill_Equal_ID %}">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
+    </div>
+</script>
+
+<script type="text/html" id="finish-view-template">
+    <div id="get_id" style="text-align: left;padding-left: 0;" data-id="{%= list.finish_info[0].Desk_ID %}" data-eid="{%= list.finish_info[0].Bill_Equal_ID %}">桌号：{%= list.finish_info[0].Desk_Name %}</div>
+    <div style="text-align: left;padding-left: 0;">时间：{%= list.finish_info[0].Bill_Equal_Date %}</div>
+    <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
+    <div class="row" style="padding: 7px 0 10px 0">
+        <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
+        <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">数量</div>
+        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">单价</div>
+        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">总价</div>
+    </div>
+    {% for(let i=0 ; i<list.finish_info.length; i++){ %}
+    <div class="row">
+        <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishName %}</div>
+        <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishNum %}</div>
+        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSale %}</div>
+        <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSaleEqual %}</div>
+    </div>
+    {% } %}
+    <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
+    <div class="row" style="padding-top: 7px;">
+        <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
+        <div class="col-5"></div>
+        <div class="col-3" id="plan-finish" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
+    </div>
+    <div class="row">
+        <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">实收金额</div>
+        <div class="col-5"></div>
+        <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list.finish_info[0].Bill_Equal_ID %}">{%= list.finish_info[0].Bill_Equal_Sale_Real %}</div>
     </div>
 </script>
 
@@ -260,6 +311,7 @@
                         },
                         'click #bill_equal_print':function (e,value, row, index) {
                             // console.log(row)
+                            openFinishDetail(row.Bill_Equal_ID,row.Bill_Equal_DeskID);
                         },
                         'click #bill_equal_delete':function (e,value, row, index) {
                             layer.confirm('确认删除？', {
@@ -298,7 +350,8 @@
                             result += '<button id="bill_equal_detail" class="btn-sm btn btn-info" style="margin:2px 10px 2px 0;">查看</button>';
                         }
                         if (row.Bill_Equal_Value == 0){
-                            result += '<button id="bill_equal_print" class="btn-sm btn btn-success" style="margin:2px 10px 2px 0;">打印</button>';
+                            //这个查看是暂时替代打印功能，用于查看无加单信息的已结单账单内容
+                            result += '<button id="bill_equal_print" class="btn-sm btn btn-success" style="margin:2px 10px 2px 0;">查看</button>';
                         }
                         result += '<button id="bill_equal_delete" class="btn-sm btn btn-danger" style="margin:2px 10px 2px 0;">删除</button>';
                         return result;
@@ -375,6 +428,30 @@
         $("#finishModal").modal('show');  //手动开启
     }
 
+    //开启详情
+    function openFinishDetail(Bill_Equal_ID,Bill_Equal_DeskID){
+        $("#finishViewModal").on('show.bs.modal',function () {
+            let _formData = new FormData;
+            _formData.append('_token', "{{ csrf_token() }}");
+            _formData.append('Bill_Equal_ID',Bill_Equal_ID);
+            fetch("/epos/get_finish_view", {method: 'post', body: _formData}).then(function (_res) {
+                return _res.json();
+            }).then(function (_resJson) {
+                console.log(_resJson);
+                if (_resJson.status == "success"){
+                    let gethtml = document.getElementById('finish-view-template').innerHTML;
+                    jetpl(gethtml).render({list:_resJson.data}, function(html){
+                        $('#finish_view_div').html(html);
+                    });
+                }else {
+                    layer.msg("出错了！错误原因：" + _resJson.message);
+                }
+            })
+            $('#finishViewModal').off('show.bs.modal');
+        })
+        $("#finishViewModal").modal('show');  //手动开启
+    }
+
     //关闭已点
     function closeFinish(){
         $("#finishModal").on('hide.bs.modal',function () {
@@ -382,6 +459,15 @@
             // document.getElementById('giveDiscount').value = '';
         })
         $("#finishModal").modal('hide');  //手动关闭
+    }
+
+    //关闭已点
+    function closeFinishView(){
+        $("#finishViewModal").on('hide.bs.modal',function () {
+            $("#finish_view_div").empty();
+            // document.getElementById('giveDiscount').value = '';
+        })
+        $("#finishViewModal").modal('hide');  //手动关闭
     }
 
     //折扣计算

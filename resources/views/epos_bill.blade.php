@@ -97,7 +97,7 @@
         <div class="modal-dialog" style="width: 97%">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">详情</h5>
+                    <h5 class="modal-title">详情(已结单)</h5>
                 </div>
                 <div class="modal-body" style="">
                     <div id="finish_view_div" style="font-size: 14px;height: calc(90vh - 200px);overflow-y: auto"></div>
