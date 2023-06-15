@@ -7,6 +7,7 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+
 ## 关于EPOS
 
 这是一个简单的基于Laravel和bootstrap框架的web端餐饮管理系统:
