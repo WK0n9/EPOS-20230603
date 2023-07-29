@@ -110,7 +110,7 @@
 </div>
 
 <div>
-    <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-加单</div>
+    <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-加单</div>
     <div id="Desk_ID" style="padding-left: 15px;height: 30px;width: 100%;line-height: 30px">桌号：</div>
     <div class="row" style="height: calc(100vh - 90px)">
         <div id="Cate" class="col-2" style="width: 100%;height: 100%;background-color: #e5e5e5;overflow-y: auto;padding: 0 5px 0 5px"></div>
@@ -129,18 +129,18 @@
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="mo" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">-</button>
-{{--                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="mpf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>--}}
+                    {{--                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="mpf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>--}}
                 </div>
                 <input type="text" class="{%= 'form-control fc_' + list[i].Dish_ID %}" value="0" data-sale="{%= list[i].Dish_Sale %}">
                 <div class="input-group-append">
-{{--                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="ppf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>--}}
+                    {{--                    <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="ppf" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">0.5</button>--}}
                     <button class="{%= 'btn btn-outline-secondary bt_' + list[i].Dish_ID %}" type="button" data-put="po" data-input="{%= list[i].Dish_ID %}" onclick="putDishNum(this)">+</button>
                 </div>
             </div>
         </div>
         <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">价格：{%= list[i].Dish_Sale %}</div>
         {{--            <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">库存：{%= list[i].Dish_Stock %}</div>--}}
-{{--        <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">已售：{%= list[i].Dish_Num %}</div>--}}
+        {{--        <div class="col-4" style="padding: 0;height: 10px;line-height: 10px;font-size: 10px;color: gray">已售：{%= list[i].Dish_Num %}</div>--}}
     </div>
     {% } %}
 </script>

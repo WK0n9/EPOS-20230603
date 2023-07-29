@@ -51,48 +51,48 @@
 
 </head>
 <body>
-    <div style="height: 30vh;width: 100%"></div>
-    <div class="row" style="align-items: center;justify-content: center;height: 100%;">
-        <div style="width: 300px;">
-            <div style="height: 80px;line-height: 80px;text-align: center;font-size: 45px;font-weight: bold">EPOS</div>
-            <div style="height: 40px;width: 100%"></div>
-            <div class="input-group flex-nowrap">
-                <span class="input-group-text">口令</span>
-                <input type="password" id="pwd" class="form-control" placeholder="输入登录口令">
-            </div>
-            <div style="height: 20px;"></div>
-            <div class="btn btn-primary" id="loginBTN" style="width: 300px;">登录</div>
+<div style="height: 30vh;width: 100%"></div>
+<div class="row" style="align-items: center;justify-content: center;height: 100%;">
+    <div style="width: 300px;">
+        <div style="height: 80px;line-height: 80px;text-align: center;font-size: 45px;font-weight: bold">江 湖 鱼 坊</div>
+        <div style="height: 40px;width: 100%"></div>
+        <div class="input-group flex-nowrap">
+            <span class="input-group-text">口令</span>
+            <input type="password" id="pwd" class="form-control" placeholder="输入登录口令">
         </div>
+        <div style="height: 20px;"></div>
+        <div class="btn btn-primary" id="loginBTN" style="width: 300px;">登录</div>
     </div>
+</div>
 
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="{{ asset('/js/bootstrap-table.min.js') }}"></script>
-    <!-- Latest compiled and minified Locales -->
-    <script src="{{ asset('/js/bootstrap-table-zh-cn.min.js') }}"></script>
-    <script>
-        document.getElementById("loginBTN").addEventListener("click",function () {
-            let _formData = new FormData;
-            let pwd_md5 = md5(md5(document.getElementById("pwd").value));
-            _formData.append("pwd",document.getElementById("pwd").value);
-            _formData.append("pwd_md5",pwd_md5);
-            _formData.append("_token","{{ csrf_token() }}");
-            fetch("{{ URL::to('/epos/login_token') }}",{method:"post",body:_formData}).then(function (_response) {
-                return _response.json();
-            }).then(function (_resJson) {
-                if (_resJson.status == "success"){
-                    let pid = _resJson.pid;
-                    let cate = _resJson.cate;
-                    localStorage.setItem("_token",pwd_md5);
-                    localStorage.setItem("ddid",_resJson.pid);
-                    localStorage.setItem("cate",_resJson.cate);
-                    window.location.href = _resJson.href;
-                    // window.location.href = _resJson.href + "?id=" + pwd_md5 + "&dd=" + pid;
-                }
-                if (_resJson.status == "fail"){
-                    layer.msg("登录失败，请重试");
-                }
-            })
+<!-- Latest compiled and minified JavaScript -->
+<script src="{{ asset('/js/bootstrap-table.min.js') }}"></script>
+<!-- Latest compiled and minified Locales -->
+<script src="{{ asset('/js/bootstrap-table-zh-cn.min.js') }}"></script>
+<script>
+    document.getElementById("loginBTN").addEventListener("click",function () {
+        let _formData = new FormData;
+        let pwd_md5 = md5(md5(document.getElementById("pwd").value));
+        _formData.append("pwd",document.getElementById("pwd").value);
+        _formData.append("pwd_md5",pwd_md5);
+        _formData.append("_token","{{ csrf_token() }}");
+        fetch("{{ URL::to('/epos/login_token') }}",{method:"post",body:_formData}).then(function (_response) {
+            return _response.json();
+        }).then(function (_resJson) {
+            if (_resJson.status == "success"){
+                let pid = _resJson.pid;
+                let cate = _resJson.cate;
+                localStorage.setItem("_token",pwd_md5);
+                localStorage.setItem("ddid",_resJson.pid);
+                localStorage.setItem("cate",_resJson.cate);
+                window.location.href = _resJson.href;
+                // window.location.href = _resJson.href + "?id=" + pwd_md5 + "&dd=" + pid;
+            }
+            if (_resJson.status == "fail"){
+                layer.msg("登录失败，请重试");
+            }
         })
-    </script>
+    })
+</script>
 </body>
 </html>

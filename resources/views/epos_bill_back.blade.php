@@ -57,7 +57,7 @@
     <div class="modal-dialog" style="width: 97%">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">详情</h5>
+                <h5 class="modal-title">详情-江湖鱼坊</h5>
             </div>
             <div class="modal-body" style="">
                 <div id="finish_div" style="font-size: 14px;height: calc(90vh - 200px);overflow-y: auto"></div>
@@ -65,8 +65,10 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeFinish()">关闭</button>
                 <button type="button" class="btn btn-success">打印</button>
-{{--                <button type="button" class="btn btn-info" onclick="addDish()">加单</button>--}}
-{{--                <button type="button" class="btn btn-danger" id="ydButton" onclick="confirmFinish()">结单</button>--}}
+                <button type="button" class="btn btn-info" onclick="getLastBill()">上一单</button>
+                <button type="button" class="btn btn-info" onclick="getNextBill()">下一单</button>
+                {{--                <button type="button" class="btn btn-info" onclick="addDish()">加单</button>--}}
+                {{--                <button type="button" class="btn btn-danger" id="ydButton" onclick="confirmFinish()">结单</button>--}}
             </div>
         </div>
     </div>
@@ -77,7 +79,7 @@
     <div class="modal-dialog" style="width: 97%">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">详情(已结单)</h5>
+                <h5 class="modal-title">详情(已结单)-江湖鱼坊</h5>
             </div>
             <div class="modal-body" style="">
                 <div id="finish_view_div" style="font-size: 14px;height: calc(90vh - 200px);overflow-y: auto"></div>
@@ -93,7 +95,7 @@
 </div>
 
 <div>
-    <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">EPOS-后厨</div>
+    <div class="sticky-top" style="height: 60px;width: 100%;background-color: #5ab8cc;line-height: 60px;text-align: center;font-size: 25px;color: white">江湖鱼坊-后厨</div>
     <div style="height: 20px;width: 100%"></div>
     <div style="height: 40px;text-align: left">
         <button id="button_last_day" type="button" class="btn btn-info" style="margin-left: 20px" onclick="openLastDay()">前一天</button>
@@ -108,8 +110,8 @@
 </div>
 
 <script type="text/html" id="finish-template">
-    <div id="get_id" style="text-align: left;padding-left: 0;" data-id="{%= list.finish_info[0].Desk_ID %}" data-eid="{%= list.finish_info[0].Bill_Equal_ID %}">桌号：{%= list.finish_info[0].Desk_Name %}</div>
-    <div style="text-align: left;padding-left: 0;">时间：{%= list.finish_info[0].Bill_Equal_Date %}</div>
+    <div id="get_id" style="text-align: left;padding-left: 0;font-weight: bold" data-index="{%= list.index %}" data-id="{%= list.finish_info[0].Desk_ID %}" data-eid="{%= list.finish_info[0].Bill_Equal_ID %}">桌号：{%= list.finish_info[0].Desk_Name %}</div>
+    <div style="text-align: left;padding-left: 0;font-weight: bold">时间：{%= list.finish_info[0].Bill_Equal_Date %}</div>
     <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
     <div class="row" style="padding: 7px 0 10px 0">
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
@@ -148,21 +150,13 @@
     {% } %}
     {% } %}
     {% } %}
-    {{--        {% for(let i=0 ; i<list.finish_info.length; i++){ %}--}}
-    {{--        <div class="row">--}}
-    {{--            <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishName %}</div>--}}
-    {{--            <div class="col-2" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishNum %}</div>--}}
-    {{--            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSale %}</div>--}}
-    {{--            <div class="col-3" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[i].Bill_DishSaleEqual %}</div>--}}
-    {{--        </div>--}}
-    {{--        {% } %}--}}
     <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
-    <div class="row" style="padding-top: 7px;">
+    <div class="row" style="padding-top: 7px;font-weight: bold">
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
         <div class="col-5"></div>
         <div class="col-3" id="plan-finish" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
     </div>
-    <div class="row">
+    <div class="row" style="font-weight: bold">
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">实收金额</div>
         <div class="col-5"></div>
         <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list.finish_info[0].Bill_Equal_ID %}">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
@@ -170,8 +164,8 @@
 </script>
 
 <script type="text/html" id="finish-view-template">
-    <div id="get_id" style="text-align: left;padding-left: 0;" data-id="{%= list.finish_info[0].Desk_ID %}" data-eid="{%= list.finish_info[0].Bill_Equal_ID %}">桌号：{%= list.finish_info[0].Desk_Name %}</div>
-    <div style="text-align: left;padding-left: 0;">时间：{%= list.finish_info[0].Bill_Equal_Date %}</div>
+    <div id="get_id" style="text-align: left;padding-left: 0;font-weight: bold;" data-id="{%= list.finish_info[0].Desk_ID %}" data-eid="{%= list.finish_info[0].Bill_Equal_ID %}">桌号：{%= list.finish_info[0].Desk_Name %}</div>
+    <div style="text-align: left;padding-left: 0;font-weight: bold;">时间：{%= list.finish_info[0].Bill_Equal_Date %}</div>
     <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
     <div class="row" style="padding: 7px 0 10px 0">
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">菜品</div>
@@ -188,12 +182,12 @@
     </div>
     {% } %}
     <div style="height: 8px;width: 100%;border-bottom:1px dashed #000;"></div>
-    <div class="row" style="padding-top: 7px;">
+    <div class="row" style="padding-top: 7px;font-weight: bold">
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">总金额</div>
         <div class="col-5"></div>
         <div class="col-3" id="plan-finish" style="text-align: center;padding-left: 0;padding-right: 10px">{%= list.finish_info[0].Bill_Equal_Sale %}</div>
     </div>
-    <div class="row">
+    <div class="row" style="font-weight: bold">
         <div class="col-4" style="text-align: left;padding-left: 0;padding-right: 10px">实收金额</div>
         <div class="col-5"></div>
         <div class="col-3" id="real-finish" style="text-align: center;padding-left: 0;padding-right: 10px" data-id="{%= list.finish_info[0].Bill_Equal_ID %}">{%= list.finish_info[0].Bill_Equal_Sale_Real %}</div>
@@ -306,8 +300,12 @@
                             });
                         },
                         'click #bill_equal_detail':function (e,value, row, index) {
-                            // console.log(row)
-                            openDetail(row.Bill_Equal_ID,row.Bill_Equal_DeskID);
+                            console.log('test')
+                            console.log(e)
+                            console.log(row)
+                            console.log(index)
+                            console.log('test')
+                            openDetail(row.Bill_Equal_ID,row.Bill_Equal_DeskID,index);
                         },
                         'click #bill_equal_print':function (e,value, row, index) {
                             // console.log(row)
@@ -380,7 +378,7 @@
         getBillEqualTable()
     }
 
-    //开启已点
+    //开启已点(已废弃)
     function openFinish(Bill_Equal_ID){
         $("#finishModal").on('show.bs.modal',function () {
             let _formData = new FormData;
@@ -405,7 +403,7 @@
     }
 
     //开启详情
-    function openDetail(Bill_Equal_ID,Bill_Equal_DeskID){
+    function openDetail(Bill_Equal_ID,Bill_Equal_DeskID,Index){
         $("#finishModal").on('show.bs.modal',function () {
             let _formData = new FormData;
             _formData.append('_token', "{{ csrf_token() }}");
@@ -413,6 +411,7 @@
             fetch("/epos/get_finish", {method: 'post', body: _formData}).then(function (_res) {
                 return _res.json();
             }).then(function (_resJson) {
+                Object.assign(_resJson.data, { "index": Index });
                 console.log(_resJson);
                 if (_resJson.status == "success"){
                     let gethtml = document.getElementById('finish-template').innerHTML;
@@ -468,6 +467,89 @@
             // document.getElementById('giveDiscount').value = '';
         })
         $("#finishViewModal").modal('hide');  //手动关闭
+    }
+
+    //上一单、下一单
+    function getLastBill() {
+        let now_index = document.getElementById('get_id').getAttribute('data-index');
+        let tableData = $("#bill_equal_table").bootstrapTable('getData');
+        let index = --now_index;
+        console.log(index);
+        console.log(tableData[index]);
+        if (tableData[index] != undefined) {
+            // if ((index - 1) >= 0) {
+            let rowData = tableData[index]
+            if (rowData.Bill_Equal_Value == 1) {
+                $("#finish_div").empty();
+                let _formData = new FormData;
+                _formData.append('_token', "{{ csrf_token() }}");
+                _formData.append('Bill_Equal_ID',rowData.Bill_Equal_ID);
+                fetch("/epos/get_finish", {method: 'post', body: _formData}).then(function (_res) {
+                    return _res.json();
+                }).then(function (_resJson) {
+                    Object.assign(_resJson.data, { "index": index });
+                    console.log(_resJson);
+                    if (_resJson.status == "success"){
+                        let gethtml = document.getElementById('finish-template').innerHTML;
+                        jetpl(gethtml).render({list:_resJson.data}, function(html){
+                            $('#finish_div').html(html);
+                        });
+                    }else {
+                        layer.msg("出错了！错误原因：" + _resJson.message, {
+                            zIndex:10000,
+                        })
+                    }
+                })
+            } else {
+                layer.msg("出错了，请刷新页面后重试！", {
+                    zIndex:10000,
+                })
+            }
+        } else {
+            layer.msg("已经是第一单了，刷新试试吧！", {
+                zIndex:10000,
+            })
+        }
+    }
+    function getNextBill() {
+        let now_index = document.getElementById('get_id').getAttribute('data-index');
+        let tableData = $("#bill_equal_table").bootstrapTable('getData');
+        let index = ++now_index;
+        console.log(index);
+        console.log(tableData[index]);
+        if (tableData[index] != undefined) {
+            let rowData = tableData[index]
+            if (rowData.Bill_Equal_Value == 1) {
+                $("#finish_div").empty();
+                let _formData = new FormData;
+                _formData.append('_token', "{{ csrf_token() }}");
+                _formData.append('Bill_Equal_ID',rowData.Bill_Equal_ID);
+                fetch("/epos/get_finish", {method: 'post', body: _formData}).then(function (_res) {
+                    return _res.json();
+                }).then(function (_resJson) {
+                    Object.assign(_resJson.data, { "index": index });
+                    console.log(_resJson);
+                    if (_resJson.status == "success"){
+                        let gethtml = document.getElementById('finish-template').innerHTML;
+                        jetpl(gethtml).render({list:_resJson.data}, function(html){
+                            $('#finish_div').html(html);
+                        });
+                    }else {
+                        layer.msg("出错了！错误原因：" + _resJson.message, {
+                            zIndex:10000,
+                        })
+                    }
+                })
+            } else {
+                layer.msg("已经是最后一单了，刷新试试吧！", {
+                    zIndex:10000,
+                })
+            }
+        } else {
+            layer.msg("已经是最后一单了，刷新试试吧！", {
+                zIndex:10000,
+            })
+        }
     }
 
     //折扣计算

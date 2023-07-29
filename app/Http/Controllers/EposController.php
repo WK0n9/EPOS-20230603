@@ -47,6 +47,11 @@ class EposController extends Controller
     {
         return view("epos_personal");
     }
+    //打开我的详细页面
+    public function table()
+    {
+        return view("epos_table");
+    }
     //获取主页所需信息
     public function get_index()
     {
@@ -84,12 +89,21 @@ class EposController extends Controller
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
     //获取库存所需信息
-    public function get_item()
+    public function get_item(Request $request)
     {
-        $item_info = DB::select("SELECT Item_ID, date_format( Item_Date,'%Y-%m-%d') AS Item_Date, Item_Tips, Item_Cost
+        $bill_date = $request->get("bill_date");
+        date_default_timezone_set('Asia/Shanghai');
+        if ($bill_date == 'today') {
+            $date = "'".date('Y-m-d')."'";
+        }else {
+            $date= "'".date('Y-m-d', strtotime($bill_date.' day'))."'";
+        }
+
+        $item_info = DB::select("SELECT Item_ID, date_format( Item_Date,'%m-%d') AS Item_Date, Item_Tips, Item_Cost
                                         FROM order_item
                                         WHERE Item_DeleteValue = 0
-                                        ORDER BY Item_Date DESC");
+                                        AND DATE(Item_Date) = $date
+                                        ORDER BY Item_ID DESC");
         $data = ["item_info"=>$item_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
@@ -104,10 +118,10 @@ class EposController extends Controller
             $date= "'".date('Y-m-d', strtotime($bill_date.' day'))."'";
         }
 
-        $bill_equal_info = DB::select("SELECT Bill_Equal_ID, Bill_Equal_DeskID, od.Desk_Name AS Bill_Equal_DeskName, Bill_Equal_Date, Bill_Equal_Sale,Bill_Equal_Value,
+        $bill_equal_info = DB::select("SELECT Bill_Equal_ID, Bill_Equal_DeskID, od.Desk_Name AS Bill_Equal_DeskName,date_format( Bill_Equal_Date,'%m-%d %H:%m') AS Bill_Equal_Date, Bill_Equal_Sale,Bill_Equal_Value,
                                                 CASE
-                                                  WHEN Bill_Equal_Value <> 0 THEN '未结单'
-                                                  WHEN Bill_Equal_Value = 0 THEN '已结单'
+                                                  WHEN Bill_Equal_Value <> 0 THEN '未结'
+                                                  WHEN Bill_Equal_Value = 0 THEN '已结'
                                                 END AS Bill_Value
                                                 FROM order_bill_equal AS ob,order_desk AS od
                                                 WHERE ob.Bill_Equal_DeskID = od.Desk_ID
@@ -115,6 +129,25 @@ class EposController extends Controller
                                                 AND DATE(Bill_Equal_Date) = $date
                                                 ORDER BY CASE WHEN Bill_Equal_Value = 0 THEN 1 ELSE 0 END, Bill_Equal_Date DESC;");
         $data = ["bill_equal_info"=>$bill_equal_info];
+        return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+    public function get_income_info(Request $request)
+    {
+        $bill_date = $request->get("bill_date");
+        date_default_timezone_set('Asia/Shanghai');
+        if ($bill_date == 'today') {
+            $date = "'".date('Y-m-d')."'";
+        }else {
+            $date= "'".date('Y-m-d', strtotime($bill_date.' day'))."'";
+        }
+
+        $income_info = DB::select("SELECT IFNULL(SUM(Bill_Equal_Sale),0) AS Bill_Equal_Sale,IFNULL(SUM(Bill_Equal_Sale_Real),0) AS Bill_Equal_Sale_Real
+                                        FROM order_bill_equal
+                                        WHERE Bill_Equal_Value = 0
+                                        AND Bill_Equal_DeleteValue <> 1
+                                        AND DATE(Bill_Equal_Date) = $date");
+
+        $data = ["income_info"=>$income_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
     }
     //加单时获取已点信息
@@ -186,7 +219,7 @@ class EposController extends Controller
     {
         $bill_equal_id = $request->get("Bill_Equal_ID");
 
-        $finish_info = DB::select("SELECT ob.Bill_ID, ob.Bill_DishName, SUM(ob.Bill_DishNum) AS Bill_DishNum, ob.Bill_DishSale, SUM(ob.Bill_DishSaleEqual) AS Bill_DishSaleEqual,
+        $finish_info = DB::select("SELECT ob.Bill_DishName, SUM(ob.Bill_DishNum) AS Bill_DishNum, ob.Bill_DishSale, SUM(ob.Bill_DishSaleEqual) AS Bill_DishSaleEqual,
                                                    obe.Bill_Equal_ID, obe.Bill_Equal_Date, obe.Bill_Equal_Sale, obe.Bill_Equal_Sale_Real,
                                                    ode.Desk_ID, ode.Desk_Name
                                                 FROM order_bill AS ob,order_bill_equal AS obe,order_desk AS ode,order_cate AS oc,order_dish AS od
@@ -198,7 +231,7 @@ class EposController extends Controller
                                                 AND obe.Bill_Equal_ID = $bill_equal_id
                                                 AND ob.Bill_DeleteValue = 0
                                                 AND obe.Bill_Equal_DeleteValue = 0
-                                                GROUP BY ob.Bill_DishID, ob.Bill_DishName, oc.Cate_ID, ob.Bill_ID
+                                                GROUP BY ob.Bill_DishID, ob.Bill_DishName, oc.Cate_ID, ob.Bill_DishSale
                                                 ORDER BY oc.Cate_ID ASC");
         $data = ["finish_info"=>$finish_info];
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
@@ -219,6 +252,92 @@ class EposController extends Controller
             $data = ["desk_value"=>"false"];
         }
         return ["status"=>"success","message"=>"获取成功！","data"=>$data];
+    }
+    //获取当日流水信息
+    public function get_today_income(Request $request)
+    {
+        $bill_date = $request->get("bill_date");
+        date_default_timezone_set('Asia/Shanghai');
+        if ($bill_date == 'today') {
+            $date = "'".date('Y-m-d')."'";
+        }else {
+            $date= "'".date('Y-m-d', strtotime($bill_date.' day'))."'";
+        }
+
+        $today_income_info = DB::select("SELECT obe.Bill_Equal_ID, od.Desk_Name,date_format( obe.Bill_Equal_Date,'%m-%d %H:%m:%s') AS Bill_Equal_Date, obe.Bill_Equal_Sale, obe.Bill_Equal_Sale_Real
+                                                FROM order_bill_equal AS obe, order_desk AS od
+                                                WHERE obe.Bill_Equal_DeskID = od.Desk_ID
+                                                AND DATE(obe.Bill_Equal_Date) = $date
+                                                AND obe.Bill_Equal_Value = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0");
+
+        return ["status"=>"success","message"=>"获取成功！","data"=>$today_income_info];
+    }
+    //获取全部流水信息
+    public function get_all_income()
+    {
+        $all_income_info = DB::select("SELECT DATE(obe.Bill_Equal_Date) AS Bill_Equal_Date, SUM(obe.Bill_Equal_Sale) AS Bill_Equal_Sale, SUM(obe.Bill_Equal_Sale_Real) AS Bill_Equal_Sale_Real
+                                                FROM order_bill_equal AS obe
+                                                WHERE obe.Bill_Equal_Value = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0
+                                                GROUP BY DATE(obe.Bill_Equal_Date)");
+
+        return ["status"=>"success","message"=>"获取成功！","data"=>$all_income_info];
+    }
+    //获取当日菜品成本信息
+    public function get_today_dish(Request $request)
+    {
+        $bill_date = $request->get("bill_date");
+        date_default_timezone_set('Asia/Shanghai');
+        if ($bill_date == 'today') {
+            $date = "'".date('Y-m-d')."'";
+        }else {
+            $date= "'".date('Y-m-d', strtotime($bill_date.' day'))."'";
+        }
+
+        $today_dish_info = DB::select("SELECT date_format( ob.Bill_Date,'%m-%d %H:%m:%s') AS Bill_Date, ob.Bill_DeskID, od.Desk_Name, SUM(ob.Bill_DishNum * odi.Dish_Cost) AS Bill_DishCost, obe.Bill_Equal_Sale_Real
+                                                FROM order_bill AS ob, order_desk AS od, order_dish AS odi, order_bill_equal AS obe
+                                                WHERE ob.Bill_DeskID = od.Desk_ID
+                                                AND ob.Bill_DishID = odi.Dish_ID
+                                                AND ob.Bill_DeskID = obe.Bill_Equal_DeskID
+                                                AND ob.Bill_Date = obe.Bill_Equal_Date
+                                                AND DATE(ob.Bill_Date) = $date
+                                                AND ob.Bill_Value = 0
+                                                AND ob.Bill_DeleteValue = 0
+                                                AND obe.Bill_Equal_Value = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0
+                                                GROUP BY date_format( ob.Bill_Date,'%m-%d %H:%m:%s'),ob.Bill_DeskID, od.Desk_Name, obe.Bill_Equal_Sale_Real");
+
+        return ["status"=>"success","message"=>"获取成功！","data"=>$today_dish_info];
+    }
+    //获取全部菜品成本信息
+    public function get_all_dish()
+    {
+        $all_dish_info = DB::select("SELECT DATE(ob.Bill_Date) AS Bill_Date, SUM(ob.Bill_DishNum * od.Dish_Cost) AS Bill_DishCost, IFNULL(obed.Bill_Equal_Sale_Real, 0) AS Bill_Equal_Sale_Real
+                                            FROM order_bill AS ob
+                                            JOIN order_dish AS od ON ob.Bill_DishID = od.Dish_ID
+                                            AND ob.Bill_Value = 0
+                                            AND ob.Bill_DeleteValue = 0
+                                            LEFT JOIN(
+                                                SELECT DATE(obe.Bill_Equal_Date) AS Bill_Equal_Date, SUM(obe.Bill_Equal_Sale_Real) AS Bill_Equal_Sale_Real
+                                                FROM order_bill_equal AS obe
+                                                WHERE obe.Bill_Equal_Value = 0
+                                                AND obe.Bill_Equal_DeleteValue = 0
+                                                GROUP BY DATE(obe.Bill_Equal_Date)
+                                            ) AS obed ON DATE(ob.Bill_Date) = obed.Bill_Equal_Date
+                                            GROUP BY DATE(ob.Bill_Date), obed.Bill_Equal_Sale_Real");
+
+        return ["status"=>"success","message"=>"获取成功！","data"=>$all_dish_info];
+    }
+    //获取全部进货信息
+    public function get_all_item()
+    {
+        $all_item_info = DB::select("SELECT DATE(oi.Item_Date) AS Item_Date, SUM(oi.Item_Cost) AS Item_Cost
+                                            FROM order_item AS oi
+                                            WHERE oi.Item_DeleteValue = 0
+                                            GROUP BY DATE(oi.Item_Date)");
+
+        return ["status"=>"success","message"=>"获取成功！","data"=>$all_item_info];
     }
 
     //提交点单
@@ -457,6 +576,28 @@ class EposController extends Controller
         }catch (Exception $exception){
             DB::rollBack();
             return ["status"=>"fail","message"=>"删除失败，原因如下：".$exception->getMessage()];
+        }
+    }
+
+    //删除已点菜品
+    public function delete_bill_dish(Request $request)
+    {
+        $Bill_ID = $request->get("Bill_ID");
+        $Bill_DSE = DB::select("SELECT Bill_DishSaleEqual, Bill_DeskID, Bill_Date FROM order_bill WHERE Bill_ID = $Bill_ID");
+        $Bill_DishSaleEqual = $Bill_DSE[0]->Bill_DishSaleEqual;
+        $Bill_DeskID = $Bill_DSE[0]->Bill_DeskID;
+        $Bill_Date = "'".$Bill_DSE[0]->Bill_Date."'";
+        try {
+            DB::beginTransaction();
+            DB::update("UPDATE order_bill SET Bill_DeleteValue = 1 WHERE Bill_ID = $Bill_ID");
+            DB::update("UPDATE order_bill_equal SET Bill_Equal_Sale = Bill_Equal_Sale - $Bill_DishSaleEqual
+                                WHERE Bill_Equal_DeskID = $Bill_DeskID
+                                AND Bill_Equal_Date = $Bill_Date");
+            DB::commit();
+            return ["status"=>"success","message"=>"编辑成功"];
+        }catch (Exception $exception){
+            DB::rollBack();
+            return ["status"=>"fail","message"=>"编辑失败，原因如下：".$exception->getMessage()];
         }
     }
 
